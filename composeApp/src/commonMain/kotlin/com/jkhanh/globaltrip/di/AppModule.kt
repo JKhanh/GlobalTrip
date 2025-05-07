@@ -2,6 +2,9 @@ package com.jkhanh.globaltrip.di
 
 import com.jkhanh.globaltrip.core.data.repository.impl.MockTripRepository
 import com.jkhanh.globaltrip.core.domain.repository.TripRepository
+import com.jkhanh.globaltrip.feature.settings.data.InMemorySettingsRepository
+import com.jkhanh.globaltrip.feature.settings.data.SettingsRepository
+import com.jkhanh.globaltrip.feature.settings.presentation.SettingsViewModel
 import com.jkhanh.globaltrip.feature.trips.domain.usecase.CreateTripUseCase
 import com.jkhanh.globaltrip.feature.trips.domain.usecase.GetTripsUseCase
 import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
@@ -14,6 +17,7 @@ object AppModule {
     
     // Repositories
     private val tripRepository: TripRepository by lazy { MockTripRepository() }
+    private val settingsRepository: SettingsRepository by lazy { InMemorySettingsRepository() }
     
     // Use cases
     private val getTripsUseCase by lazy { GetTripsUseCase(tripRepository) }
@@ -26,5 +30,9 @@ object AppModule {
     
     fun provideTripCreateViewModel(): TripCreateViewModel {
         return TripCreateViewModel(createTripUseCase)
+    }
+    
+    fun provideSettingsViewModel(): SettingsViewModel {
+        return SettingsViewModel(settingsRepository)
     }
 }

@@ -14,7 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.jkhanh.globaltrip.core.ui.theme.GlobalTripTheme
+import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
 import com.jkhanh.globaltrip.di.AppModule
+import com.jkhanh.globaltrip.feature.settings.ui.SettingsScreen
 import com.jkhanh.globaltrip.feature.trips.ui.TripListScreen
 import com.jkhanh.globaltrip.feature.trips.ui.create.TripCreateScreen
 import com.jkhanh.globaltrip.navigation.BottomNavigationBar
@@ -29,7 +31,13 @@ import com.jkhanh.globaltrip.navigation.rememberNavigator
 fun GlobalTripApp() {
     val navigator = rememberNavigator()
     
-    GlobalTripTheme {
+    // Get the theme settings from the SettingsViewModel
+    val settingsViewModel = remember { AppModule.provideSettingsViewModel() }
+    val currentTheme by settingsViewModel.themeOption.collectAsState()
+    
+    GlobalTripTheme(
+        themeOption = currentTheme
+    ) {
         Scaffold(
             bottomBar = {
                 // Only show bottom bar on main tabs
@@ -58,7 +66,12 @@ fun GlobalTripApp() {
                     Screen.Trips -> TripsScreen(navigator)
                     Screen.Maps -> MapsScreen()
                     Screen.Expenses -> ExpensesScreen()
-                    Screen.Settings -> SettingsScreen()
+                    Screen.Settings -> SettingsScreen(
+                        currentTheme = currentTheme,
+                        onThemeSelected = { theme ->
+                            settingsViewModel.setThemeOption(theme)
+                        }
+                    )
                     
                     // Other screens
                     Screen.TripCreate -> {
@@ -120,15 +133,5 @@ fun ExpensesScreen() {
         contentAlignment = Alignment.Center
     ) {
         Text("Expenses Screen")
-    }
-}
-
-@Composable
-fun SettingsScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Settings Screen")
     }
 }
