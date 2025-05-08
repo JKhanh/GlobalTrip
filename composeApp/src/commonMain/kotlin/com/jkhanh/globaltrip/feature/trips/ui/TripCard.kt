@@ -124,5 +124,8 @@ private fun formatDateRange(startDate: LocalDate?, endDate: LocalDate?): String 
  * Format a date as a string
  */
 private fun formatDate(date: LocalDate): String {
-    return "${date.month.name.lowercase().capitalize().take(3)} ${date.dayOfMonth}, ${date.year}"
+    return "${
+        date.month.name.lowercase()
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            .take(3)} ${date.dayOfMonth}, ${date.year}"
 }
