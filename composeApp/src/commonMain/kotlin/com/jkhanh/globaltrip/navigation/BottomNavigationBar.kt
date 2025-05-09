@@ -16,12 +16,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 /**
- * Bottom navigation bar for the app
+ * Bottom navigation bar for the app using type-safe routes
  */
 @Composable
 fun BottomNavigationBar(
-    currentRoute: String,
-    onNavigate: (Screen) -> Unit,
+    currentRouteClass: Any?,
+    onNavigate: (Any) -> Unit,
     modifier: Modifier = Modifier
 ) {
     BottomNavigation(
@@ -30,9 +30,17 @@ fun BottomNavigationBar(
         elevation = 8.dp
     ) {
         NavigationItems.forEach { item ->
+            val isSelected = when (currentRouteClass) {
+                is Trips -> item.destination is Trips
+                is Maps -> item.destination is Maps
+                is Expenses -> item.destination is Expenses
+                is Settings -> item.destination is Settings
+                else -> false
+            }
+            
             BottomNavigationItem(
-                selected = currentRoute == item.screen.route,
-                onClick = { onNavigate(item.screen) },
+                selected = isSelected,
+                onClick = { onNavigate(item.destination) },
                 icon = {
                     Icon(
                         imageVector = item.icon,
@@ -51,7 +59,7 @@ fun BottomNavigationBar(
  * Data class for navigation item
  */
 private data class NavigationItem(
-    val screen: Screen,
+    val destination: Any,
     val title: String,
     val icon: ImageVector
 )
@@ -61,22 +69,22 @@ private data class NavigationItem(
  */
 private val NavigationItems = listOf(
     NavigationItem(
-        screen = Screen.Trips,
+        destination = Trips,
         title = "Trips",
         icon = Icons.Default.Home
     ),
     NavigationItem(
-        screen = Screen.Maps,
+        destination = Maps,
         title = "Maps",
         icon = Icons.Default.Place
     ),
     NavigationItem(
-        screen = Screen.Expenses,
+        destination = Expenses,
         title = "Expenses",
         icon = Icons.Default.DateRange
     ),
     NavigationItem(
-        screen = Screen.Settings,
+        destination = Settings,
         title = "Settings",
         icon = Icons.Default.Settings
     )
