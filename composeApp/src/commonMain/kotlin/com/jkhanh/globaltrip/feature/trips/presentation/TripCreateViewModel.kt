@@ -77,7 +77,7 @@ class TripCreateViewModel(
                     endDate = _state.value.endDate,
                     destination = _state.value.destination,
                     coverImageUrl = null,
-                    isArchived = false,
+                    isArchived = _state.value.isArchived,
                     createdAt = Clock.System.now(),
                     updatedAt = Clock.System.now(),
                     ownerId = "user1"  // Mock user ID
@@ -118,6 +118,13 @@ class TripCreateViewModel(
     }
     
     /**
+     * Updates the archive status
+     */
+    fun updateArchiveStatus(isArchived: Boolean) {
+        _state.update { it.copy(isArchived = isArchived) }
+    }
+    
+    /**
      * Resets the success state
      */
     fun resetSuccessState() {
@@ -134,6 +141,7 @@ data class TripCreateState(
     val destination: String = "",
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
+    val isArchived: Boolean = false,
     val isLoading: Boolean = false,
     val isValid: Boolean = false,
     val isSuccess: Boolean = false,

@@ -99,6 +99,9 @@ kotlin {
             
             // Compose Navigation from JetBrains - correct implementation
             implementation(libs.androidx.navigation.compose)
+            
+            // Date Time Picker
+            implementation("network.chaintech:kmp-date-time-picker:1.0.7")
         }
         
         androidMain.dependencies {
