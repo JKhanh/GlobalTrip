@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -38,14 +37,28 @@ class TripListViewModel(
         
         getTripsUseCase()
             .onEach { trips ->
+                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                
+                val upcomingTrips = trips.filter { trip -> 
+                    trip.startDate != null && trip.startDate >= today && !trip.isArchived
+                }
+                
+                val pastTrips = trips.filter { trip ->
+                    trip.endDate != null && trip.endDate < today && !trip.isArchived
+                }
+                
+                val archivedTrips = trips.filter { it.isArchived }
+                
                 _state.update {
                     it.copy(
-                        trips = trips,
+                        allTrips = trips,
+                        upcomingTrips = upcomingTrips,
+                        pastTrips = pastTrips,
+                        archivedTrips = archivedTrips,
                         isLoading = false,
                         error = null
                     )
                 }
-                applyFilter(_state.value.filterType)
             }
             .catch { e ->
                 _state.update {
@@ -57,22 +70,5 @@ class TripListViewModel(
             }
             .launchIn(viewModelScope)
     }
-    
-    /**
-     * Applies a filter to the trip list
-     */
-    fun applyFilter(filterType: TripFilterType) {
-        _state.update { it.copy(filterType = filterType) }
-        
-        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        
-        val filteredTrips = when (filterType) {
-            TripFilterType.ALL -> _state.value.trips
-            TripFilterType.UPCOMING -> _state.value.trips.filter { it.startDate != null && it.startDate >= today && !it.isArchived }
-            TripFilterType.PAST -> _state.value.trips.filter { it.endDate != null && it.endDate < today && !it.isArchived }
-            TripFilterType.ARCHIVED -> _state.value.trips.filter { it.isArchived }
-        }
-        
-        _state.update { it.copy(trips = filteredTrips) }
-    }
 }
+

@@ -29,13 +29,14 @@ import androidx.compose.ui.unit.dp
 import com.jkhanh.globaltrip.core.ui.components.GTButton
 import com.jkhanh.globaltrip.core.ui.components.GTTextField
 import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
+import org.koin.compose.koinInject
 
 /**
  * Screen for creating a new trip
  */
 @Composable
 fun TripCreateScreen(
-    viewModel: TripCreateViewModel,
+    viewModel: TripCreateViewModel = koinInject(),
     onNavigateBack: () -> Unit,
     onTripCreated: (String) -> Unit
 ) {

@@ -1,0 +1,65 @@
+-- Trip table definition
+CREATE TABLE Trip (
+    id TEXT PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    start_date TEXT,
+    end_date TEXT,
+    destination TEXT NOT NULL,
+    cover_image_url TEXT,
+    is_archived INTEGER AS kotlin.Boolean NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    owner_id TEXT NOT NULL
+);
+
+-- Select all trips
+selectAll:
+SELECT * FROM Trip;
+
+-- Get a specific trip by ID
+getById:
+SELECT * FROM Trip WHERE id = ?;
+
+-- Get upcoming trips (where start_date is in the future and not archived)
+getUpcomingTrips:
+SELECT * FROM Trip 
+WHERE start_date >= ? AND is_archived = 0;
+
+-- Get past trips (where end_date is in the past and not archived)
+getPastTrips:
+SELECT * FROM Trip 
+WHERE end_date < ? AND is_archived = 0;
+
+-- Get archived trips
+getArchivedTrips:
+SELECT * FROM Trip 
+WHERE is_archived = 1;
+
+-- Insert or replace a trip
+insertOrReplace:
+INSERT OR REPLACE INTO Trip(
+    id, 
+    title, 
+    description, 
+    start_date, 
+    end_date, 
+    destination, 
+    cover_image_url, 
+    is_archived, 
+    created_at, 
+    updated_at, 
+    owner_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Delete a trip
+deleteTrip:
+DELETE FROM Trip WHERE id = ?;
+
+-- Archive a trip
+archiveTrip:
+UPDATE Trip SET is_archived = 1, updated_at = ? WHERE id = ?;
+
+-- Unarchive a trip
+unarchiveTrip:
+UPDATE Trip SET is_archived = 0, updated_at = ? WHERE id = ?;

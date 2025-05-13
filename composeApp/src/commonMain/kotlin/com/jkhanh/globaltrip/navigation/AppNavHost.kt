@@ -69,10 +69,8 @@ fun AppNavHost(
             ) {
                 // Main tabs
                 composable<Trips> {
-                    val viewModel = remember { AppModule.provideTripListViewModel() }
                     
                     TripListScreen(
-                        viewModel = viewModel,
                         onTripClick = { trip -> 
                             navController.navigate(TripDetail(trip.id))
                         },
@@ -120,10 +118,8 @@ fun AppNavHost(
                 }
                 
                 composable<TripCreate> {
-                    val viewModel = remember { AppModule.provideTripCreateViewModel() }
                     
                     TripCreateScreen(
-                        viewModel = viewModel,
                         onNavigateBack = { navController.navigateUp() },
                         onTripCreated = { tripId ->
                             navController.navigate(TripDetail(tripId)) {
