@@ -71,6 +71,25 @@ kotlin {
             
             // Compose Navigation from JetBrains - correct implementation
             implementation(libs.androidx.navigation.compose)
+            
+            // Supabase
+            implementation(libs.supabase.auth)
+            implementation(libs.supabase.auth.compose)
+            implementation(libs.ktor.client.core)
+        }
+        
+        androidMain.dependencies {
+            implementation(compose.preview)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
+        }
+        
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }

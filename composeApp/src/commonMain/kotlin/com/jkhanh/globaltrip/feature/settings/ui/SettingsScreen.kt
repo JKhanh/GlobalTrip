@@ -16,7 +16,8 @@ import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
 @Composable
 fun SettingsScreen(
     currentTheme: GlobalTripThemeOption,
-    onThemeSelected: (GlobalTripThemeOption) -> Unit
+    onThemeSelected: (GlobalTripThemeOption) -> Unit,
+    onSignOut: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
     
@@ -54,7 +55,41 @@ fun SettingsScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Other Settings Sections could be added here
+        // Account Section (if signed in)
+        if (onSignOut != null) {
+            Text(
+                text = "Account",
+                style = MaterialTheme.typography.h5,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Button(
+                        onClick = onSignOut,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.error
+                        )
+                    ) {
+                        Text(
+                            text = "Sign Out",
+                            color = MaterialTheme.colors.onError
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+        
+        // About Section
         Text(
             text = "About",
             style = MaterialTheme.typography.h5,
