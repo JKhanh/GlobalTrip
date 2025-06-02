@@ -1,5 +1,5 @@
 -- Trip table definition
-CREATE TABLE Trip (
+CREATE TABLE TripModel (
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
@@ -15,30 +15,30 @@ CREATE TABLE Trip (
 
 -- Select all trips
 selectAll:
-SELECT * FROM Trip;
+SELECT * FROM TripModel;
 
 -- Get a specific trip by ID
 getById:
-SELECT * FROM Trip WHERE id = ?;
+SELECT * FROM TripModel WHERE id = ?;
 
 -- Get upcoming trips (where start_date is in the future and not archived)
 getUpcomingTrips:
-SELECT * FROM Trip 
+SELECT * FROM TripModel
 WHERE start_date >= ? AND is_archived = 0;
 
 -- Get past trips (where end_date is in the past and not archived)
 getPastTrips:
-SELECT * FROM Trip 
+SELECT * FROM TripModel
 WHERE end_date < ? AND is_archived = 0;
 
 -- Get archived trips
 getArchivedTrips:
-SELECT * FROM Trip 
+SELECT * FROM TripModel
 WHERE is_archived = 1;
 
 -- Insert or replace a trip
 insertOrReplace:
-INSERT OR REPLACE INTO Trip(
+INSERT OR REPLACE INTO TripModel(
     id, 
     title, 
     description, 
@@ -54,12 +54,12 @@ INSERT OR REPLACE INTO Trip(
 
 -- Delete a trip
 deleteTrip:
-DELETE FROM Trip WHERE id = ?;
+DELETE FROM TripModel WHERE id = ?;
 
 -- Archive a trip
 archiveTrip:
-UPDATE Trip SET is_archived = 1, updated_at = ? WHERE id = ?;
+UPDATE TripModel SET is_archived = 1, updated_at = ? WHERE id = ?;
 
 -- Unarchive a trip
 unarchiveTrip:
-UPDATE Trip SET is_archived = 0, updated_at = ? WHERE id = ?;
+UPDATE TripModel SET is_archived = 0, updated_at = ? WHERE id = ?;

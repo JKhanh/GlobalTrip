@@ -3,6 +3,7 @@ package com.jkhanh.globaltrip.core.data.repository.impl
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.jkhanh.globaltrip.core.database.GlobalTripDatabase
+import com.jkhanh.globaltrip.core.database.TripModel
 import com.jkhanh.globaltrip.core.domain.model.Trip
 import com.jkhanh.globaltrip.core.domain.repository.TripRepository
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * SQLDelight implementation of TripRepository
@@ -19,6 +22,25 @@ import kotlinx.datetime.LocalDate
 class SqlDelightTripRepository(
     private val database: GlobalTripDatabase
 ) : TripRepository {
+    
+    /**
+     * Generates a unique ID that doesn't already exist in the database
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    private suspend fun generateUniqueId(): String = withContext(Dispatchers.Default) {
+        var candidateId: String
+        do {
+            candidateId = Uuid.random().toString()
+        } while (isIdAlreadyInUse(candidateId))
+        candidateId
+    }
+    
+    /**
+     * Checks if a trip ID is already in use in the database
+     */
+    private suspend fun isIdAlreadyInUse(id: String): Boolean = withContext(Dispatchers.Default) {
+        queries.getById(id).executeAsOneOrNull() != null
+    }
     
     private val queries = database.tripQueries
     
@@ -37,10 +59,22 @@ class SqlDelightTripRepository(
             ?.toDomainModel()
     }
     
+    @OptIn(ExperimentalUuidApi::class)
     override suspend fun createTrip(trip: Trip): String = withContext(Dispatchers.Default) {
+        // Generate a unique ID if the provided one is empty
+        val tripId = if (trip.id.isBlank()) {
+            generateUniqueId()
+        } else {
+            // If an ID was provided, verify it's not already in use
+            if (isIdAlreadyInUse(trip.id)) {
+                throw IllegalArgumentException("Trip ID '${trip.id}' is already in use")
+            }
+            trip.id
+        }
+        
         val now = Clock.System.now()
         queries.insertOrReplace(
-            id = trip.id,
+            id = tripId,
             title = trip.title,
             description = trip.description,
             start_date = trip.startDate?.toString(),
@@ -52,7 +86,7 @@ class SqlDelightTripRepository(
             updated_at = now.toString(),
             owner_id = trip.ownerId
         )
-        trip.id
+        tripId
     }
     
     override suspend fun updateTrip(trip: Trip) = withContext(Dispatchers.Default) {
@@ -87,7 +121,7 @@ class SqlDelightTripRepository(
     /**
      * Extension function to convert database entity to domain model
      */
-    private fun com.jkhanh.globaltrip.core.database.Trip.toDomainModel(): Trip {
+    private fun TripModel.toDomainModel(): Trip {
         return Trip(
             id = id,
             title = title,

@@ -41,12 +41,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.MaterialTheme
+import com.jkhanh.globaltrip.core.ui.components.GTTextField
 import com.jkhanh.globaltrip.core.ui.theme.GlobalTripBlue
+import com.jkhanh.globaltrip.core.ui.theme.GlobalTripBlack
+import com.jkhanh.globaltrip.core.ui.theme.GlobalTripWhite
+import com.jkhanh.globaltrip.core.ui.theme.SerenePalette
 import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toLocalDateTime
 import network.chaintech.kmp_date_time_picker.ui.date_range_picker.WheelDateRangePickerView
 import network.chaintech.kmp_date_time_picker.utils.DateTimePickerView
+import network.chaintech.kmp_date_time_picker.utils.MAX
+import network.chaintech.kmp_date_time_picker.utils.MIN
 import org.koin.compose.koinInject
 
 /**
@@ -89,7 +96,7 @@ fun TripCreateScreen(
     }
     
     Scaffold(
-        backgroundColor = Color(0xFFF5F7FA)
+        backgroundColor = MaterialTheme.colors.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -113,14 +120,14 @@ fun TripCreateScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE7EFF3))
+                            .background(MaterialTheme.colors.surface)
                             .clickable { onNavigateBack() },
                         contentAlignment = Alignment.Center
                     ) {
                         androidx.compose.material.Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF0D161B)
+                            tint = MaterialTheme.colors.onSurface
                         )
                     }
                     
@@ -129,7 +136,7 @@ fun TripCreateScreen(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.015).sp,
-                        color = Color(0xFF0D161B),
+                        color = MaterialTheme.colors.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
                     )
@@ -142,7 +149,7 @@ fun TripCreateScreen(
                             text = "Save",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4C7D9A),
+                            color = MaterialTheme.colors.primary,
                             modifier = Modifier.clickable { 
                                 viewModel.createTrip() 
                             }
@@ -151,21 +158,42 @@ fun TripCreateScreen(
                 }
                 
                 // Title field
-                FormField(
-                    label = "Title",
+                Text(
+                    text = "Title",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colors.onBackground,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
+                )
+                
+                GTTextField(
                     value = state.title,
                     onValueChange = { viewModel.updateTitle(it) },
-                    placeholder = ""
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
                 
                 // Description field
-                FormField(
-                    label = "Description",
+                Text(
+                    text = "Description",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colors.onBackground,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
+                )
+                
+                GTTextField(
                     value = state.description,
                     onValueChange = { viewModel.updateDescription(it) },
                     placeholder = "Add a description",
                     singleLine = false,
-                    maxLines = 5
+                    maxLines = 5,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(144.dp)
+                        .padding(horizontal = 16.dp)
                 )
                 
                 // Dates Section
@@ -174,7 +202,7 @@ fun TripCreateScreen(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.015).sp,
-                    color = Color(0xFF0D161B),
+                    color = MaterialTheme.colors.onBackground,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
                 )
                 
@@ -201,7 +229,7 @@ fun TripCreateScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp)
-                            .background(color = Color(0xFFE7EFF3), shape = RoundedCornerShape(12.dp))
+                            .background(color = MaterialTheme.colors.surface, shape = RoundedCornerShape(12.dp))
                             .clip(RoundedCornerShape(12.dp))
                             .clickable { showDatePicker = true }
                             .padding(horizontal = 16.dp),
@@ -210,7 +238,7 @@ fun TripCreateScreen(
                         Text(
                             text = dateFormat(state.startDate),
                             fontSize = 16.sp,
-                            color = Color(0xFF0D161B)
+                            color = MaterialTheme.colors.onSurface
                         )
                     }
                     
@@ -218,14 +246,14 @@ fun TripCreateScreen(
                         text = "to",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF0D161B)
+                        color = MaterialTheme.colors.onBackground
                     )
                     
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp)
-                            .background(color = Color(0xFFE7EFF3), shape = RoundedCornerShape(12.dp))
+                            .background(color = MaterialTheme.colors.surface, shape = RoundedCornerShape(12.dp))
                             .clip(RoundedCornerShape(12.dp))
                             .clickable { showDatePicker = true }
                             .padding(horizontal = 16.dp),
@@ -234,7 +262,7 @@ fun TripCreateScreen(
                         Text(
                             text = dateFormat(state.endDate),
                             fontSize = 16.sp,
-                            color = Color(0xFF0D161B)
+                            color = MaterialTheme.colors.onSurface
                         )
                     }
                 }
@@ -249,18 +277,16 @@ fun TripCreateScreen(
                         initialToDate = state.endDate,
                         selectFutureDate = true,
                         selectPastDate = true,
-                        minDate = LocalDate(2000, 1, 1),
-                        maxDate = LocalDate(2050, 12, 31),
                         height = 200.dp,
                         rowCount = 5,
                         showShortMonths = true,
                         dateTimePickerView = DateTimePickerView.BOTTOM_SHEET_VIEW,
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colors.surface,
                         shape = RoundedCornerShape(16.dp),
-                        dateRangeBoxColor = Color(0xFFE7EFF3),
-                        dateRangeSelectedBoxColor = Color(0xFF139CEC).copy(alpha = 0.1f),
-                        dateRangeBoxBorderColor = Color(0xFFE7EFF3),
-                        dateRangeSelectedBoxBorderColor = Color(0xFF139CEC),
+                        dateRangeBoxColor = MaterialTheme.colors.surface,
+                        dateRangeSelectedBoxColor = MaterialTheme.colors.primary.copy(alpha = 0.1f),
+                        dateRangeBoxBorderColor = MaterialTheme.colors.primary.copy(alpha = 0.2f),
+                        dateRangeSelectedBoxBorderColor = MaterialTheme.colors.primary,
                         dateRangeBoxShape = RoundedCornerShape(8.dp),
                         onFromDateChangeListener = { fromDate ->
                             viewModel.updateStartDate(fromDate)
@@ -285,16 +311,26 @@ fun TripCreateScreen(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.015).sp,
-                    color = Color(0xFF0D161B),
+                    color = MaterialTheme.colors.onBackground,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
                 )
                 
                 // Location field
-                FormField(
-                    label = "Location",
+                Text(
+                    text = "Location",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colors.onBackground,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
+                )
+                
+                GTTextField(
                     value = state.destination,
                     onValueChange = { viewModel.updateDestination(it) },
-                    placeholder = ""
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
                 
                 // Cover Photo Section
@@ -303,7 +339,7 @@ fun TripCreateScreen(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.015).sp,
-                    color = Color(0xFF0D161B),
+                    color = MaterialTheme.colors.onBackground,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 16.dp)
                 )
                 
@@ -313,13 +349,13 @@ fun TripCreateScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 12.dp)
                         .aspectRatio(3f / 2f)
-                        .background(color = Color(0xFFE7EFF3), shape = RoundedCornerShape(8.dp))
+                        .background(color = MaterialTheme.colors.surface, shape = RoundedCornerShape(8.dp))
                         .clip(RoundedCornerShape(8.dp))
                 ) {
                     // This is a placeholder, you would typically load an image here
                     Text(
                         text = "Select cover image",
-                        color = Color(0xFF4C7D9A),
+                        color = MaterialTheme.colors.primary,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -335,17 +371,17 @@ fun TripCreateScreen(
                     Text(
                         text = "Archive this trip",
                         fontSize = 16.sp,
-                        color = Color(0xFF0D161B)
+                        color = MaterialTheme.colors.onBackground
                     )
                     
                     Switch(
                         checked = state.isArchived,
                         onCheckedChange = { viewModel.updateArchiveStatus(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF139CEC),
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color(0xFFE7EFF3)
+                            checkedThumbColor = MaterialTheme.colors.onPrimary,
+                            checkedTrackColor = MaterialTheme.colors.primary,
+                            uncheckedThumbColor = MaterialTheme.colors.onSurface,
+                            uncheckedTrackColor = MaterialTheme.colors.surface
                         )
                     )
                 }
@@ -362,81 +398,3 @@ fun TripCreateScreen(
         }
     }
 }
-
-@Composable
-fun FormField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    singleLine: Boolean = true,
-    maxLines: Int = 1
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF0D161B),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        
-        if (singleLine) {
-            androidx.compose.material.TextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = {
-                    if (placeholder.isNotEmpty()) {
-                        Text(
-                            text = placeholder,
-                            color = Color(0xFF4C7D9A)
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = androidx.compose.material.TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color(0xFFE7EFF3),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = GlobalTripBlue,
-                    textColor = Color(0xFF0D161B)
-                ),
-                singleLine = true
-            )
-        } else {
-            androidx.compose.material.TextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = {
-                    if (placeholder.isNotEmpty()) {
-                        Text(
-                            text = placeholder,
-                            color = Color(0xFF4C7D9A)
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(144.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = androidx.compose.material.TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color(0xFFE7EFF3),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = GlobalTripBlue,
-                    textColor = Color(0xFF0D161B)
-                ),
-                maxLines = maxLines
-            )
-        }
-    }
-}
-
-

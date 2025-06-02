@@ -101,7 +101,7 @@ kotlin {
             implementation(libs.androidx.navigation.compose)
             
             // Date Time Picker
-            implementation("network.chaintech:kmp-date-time-picker:1.0.7")
+            implementation(libs.kmp.date.time.picker)
         }
         
         androidMain.dependencies {

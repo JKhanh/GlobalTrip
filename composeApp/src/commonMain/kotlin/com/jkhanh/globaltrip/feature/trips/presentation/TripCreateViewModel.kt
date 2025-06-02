@@ -70,7 +70,7 @@ class TripCreateViewModel(
                 _state.update { it.copy(isLoading = true, error = null) }
                 
                 val trip = Trip(
-                    id = "",  // Will be assigned by the repository
+                    id = "",  // Empty ID will be replaced with a unique one in the repository
                     title = _state.value.title,
                     description = _state.value.description,
                     startDate = _state.value.startDate,
@@ -90,6 +90,14 @@ class TripCreateViewModel(
                         isLoading = false,
                         isSuccess = true,
                         tripId = tripId
+                    )
+                }
+            } catch (e: IllegalArgumentException) {
+                // Handle specific error when ID is already in use
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "Trip ID already exists"
                     )
                 }
             } catch (e: Exception) {

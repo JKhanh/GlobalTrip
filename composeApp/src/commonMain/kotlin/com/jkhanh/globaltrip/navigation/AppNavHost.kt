@@ -21,7 +21,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
-import com.jkhanh.globaltrip.di.AppModule
 import com.jkhanh.globaltrip.feature.settings.ui.SettingsScreen
 import com.jkhanh.globaltrip.feature.trips.ui.TripListScreen
 import com.jkhanh.globaltrip.feature.trips.ui.create.TripCreateScreen
@@ -121,10 +120,8 @@ fun AppNavHost(
                     
                     TripCreateScreen(
                         onNavigateBack = { navController.navigateUp() },
-                        onTripCreated = { tripId ->
-                            navController.navigate(TripDetail(tripId)) {
-                                popUpTo(Trips::class)
-                            }
+                        onTripCreated = { _ ->
+                            navController.navigateUp()
                         }
                     )
                 }
