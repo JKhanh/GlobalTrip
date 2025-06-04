@@ -49,4 +49,19 @@ sealed interface AuthIntent {
      * Toggle password visibility
      */
     data object TogglePasswordVisibility : AuthIntent
+    
+    /**
+     * Validate email field in real-time
+     */
+    data class ValidateEmail(val email: String) : AuthIntent
+    
+    /**
+     * Validate password field in real-time
+     */
+    data class ValidatePassword(val password: String) : AuthIntent
+    
+    /**
+     * Validate name field in real-time
+     */
+    data class ValidateName(val name: String) : AuthIntent
 }

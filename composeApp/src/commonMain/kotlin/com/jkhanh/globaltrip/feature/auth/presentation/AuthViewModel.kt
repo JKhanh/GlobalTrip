@@ -2,6 +2,7 @@ package com.jkhanh.globaltrip.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jkhanh.globaltrip.core.domain.model.AuthError
 import com.jkhanh.globaltrip.core.domain.model.AuthResult
 import com.jkhanh.globaltrip.core.domain.model.AuthState
 import com.jkhanh.globaltrip.core.domain.model.getUserMessage
@@ -58,6 +59,9 @@ class AuthViewModel(
             is AuthIntent.ClearError -> clearError()
             is AuthIntent.ToggleAuthMode -> toggleAuthMode()
             is AuthIntent.TogglePasswordVisibility -> togglePasswordVisibility()
+            is AuthIntent.ValidateEmail -> validateEmail(intent.email)
+            is AuthIntent.ValidatePassword -> validatePassword(intent.password)
+            is AuthIntent.ValidateName -> validateName(intent.name)
         }
     }
     
@@ -110,13 +114,20 @@ class AuthViewModel(
      * Sign in with email and password
      */
     private fun signIn(email: String, password: String) {
-        if (!validateSignInForm(email, password)) return
+        if (!validateSignInForm(email, password)) {
+            println("📱 DEBUG: Sign in form validation failed")
+            return
+        }
+        
+        println("📱 DEBUG: Starting sign in process in ViewModel")
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
+            println("📱 DEBUG: Calling signInUseCase")
             when (val result = signInUseCase(email, password)) {
                 is AuthResult.Success -> {
+                    println("📱 DEBUG: Sign in use case successful")
                     _uiState.update { 
                         it.copy(
                             isLoading = false, 
@@ -128,6 +139,7 @@ class AuthViewModel(
                     _effects.trySend(AuthEffect.ShowSuccessMessage("Welcome back!"))
                 }
                 is AuthResult.Error -> {
+                    println("📱 DEBUG: Sign in use case failed: ${result.error}")
                     _uiState.update { 
                         it.copy(
                             isLoading = false, 
@@ -145,13 +157,20 @@ class AuthViewModel(
      * Sign up with email, password and optional name
      */
     private fun signUp(email: String, password: String, name: String?) {
-        if (!validateSignUpForm(email, password, name)) return
+        if (!validateSignUpForm(email, password, name)) {
+            println("📱 DEBUG: Sign up form validation failed")
+            return
+        }
+        
+        println("📱 DEBUG: Starting sign up process in ViewModel")
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
+            println("📱 DEBUG: Calling signUpUseCase")
             when (val result = signUpUseCase(email, password, name)) {
                 is AuthResult.Success -> {
+                    println("📱 DEBUG: Sign up use case successful")
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
@@ -163,14 +182,30 @@ class AuthViewModel(
                     _effects.trySend(AuthEffect.ShowSuccessMessage("Account created successfully!"))
                 }
                 is AuthResult.Error -> {
-                    _uiState.update { 
-                        it.copy(
-                            isLoading = false,
-                            error = result.error.getUserMessage(),
-                            isSignUpSuccessful = false
-                        )
+                    println("📱 DEBUG: Sign up use case failed: ${result.error}")
+                    
+                    // Handle email verification case specially for sign up
+                    if (result.error is AuthError.EmailNotVerified) {
+                        // Sign up was successful but needs email verification
+                        _uiState.update { 
+                            it.copy(
+                                isLoading = false,
+                                error = null,
+                                isSignUpSuccessful = true
+                            )
+                        }
+                        _effects.trySend(AuthEffect.ShowSuccessMessage("Account created! Please check your email to verify your account before signing in."))
+                    } else {
+                        // Actual sign up failure
+                        _uiState.update { 
+                            it.copy(
+                                isLoading = false,
+                                error = result.error.getUserMessage(),
+                                isSignUpSuccessful = false
+                            )
+                        }
+                        _effects.trySend(AuthEffect.ShowErrorMessage(result.error.getUserMessage()))
                     }
-                    _effects.trySend(AuthEffect.ShowErrorMessage(result.error.getUserMessage()))
                 }
             }
         }
@@ -278,7 +313,11 @@ class AuthViewModel(
                 isSignInMode = !it.isSignInMode,
                 error = null,
                 isSignInSuccessful = false,
-                isSignUpSuccessful = false
+                isSignUpSuccessful = false,
+                // Reset validation states when switching modes
+                isEmailValid = true,
+                isPasswordValid = true,
+                isNameValid = true
             )
         }
     }
@@ -291,10 +330,38 @@ class AuthViewModel(
     }
     
     /**
+     * Validate email field in real-time
+     */
+    private fun validateEmail(email: String) {
+        val isEmailValid = email.isNotBlank() && isValidEmailFormat(email)
+        _uiState.update { it.copy(isEmailValid = isEmailValid) }
+    }
+    
+    /**
+     * Validate password field in real-time
+     */
+    private fun validatePassword(password: String) {
+        val isPasswordValid = if (uiState.value.isSignInMode) {
+            password.isNotBlank()
+        } else {
+            password.length >= 6
+        }
+        _uiState.update { it.copy(isPasswordValid = isPasswordValid) }
+    }
+    
+    /**
+     * Validate name field in real-time
+     */
+    private fun validateName(name: String) {
+        val isNameValid = name.isBlank() || name.trim().length >= 2 // Name is optional but if provided must be at least 2 chars
+        _uiState.update { it.copy(isNameValid = isNameValid) }
+    }
+    
+    /**
      * Validate sign in form
      */
     private fun validateSignInForm(email: String, password: String): Boolean {
-        val isEmailValid = email.isNotBlank() && email.contains("@")
+        val isEmailValid = email.isNotBlank() && isValidEmailFormat(email)
         val isPasswordValid = password.isNotBlank()
         
         _uiState.update { 
@@ -311,7 +378,7 @@ class AuthViewModel(
      * Validate sign up form
      */
     private fun validateSignUpForm(email: String, password: String, name: String?): Boolean {
-        val isEmailValid = email.isNotBlank() && email.contains("@")
+        val isEmailValid = email.isNotBlank() && isValidEmailFormat(email)
         val isPasswordValid = password.length >= 6
         val isNameValid = name?.isNotBlank() ?: true // Name is optional
         
@@ -324,5 +391,12 @@ class AuthViewModel(
         }
         
         return isEmailValid && isPasswordValid && isNameValid
+    }
+    
+    /**
+     * Validate email format
+     */
+    private fun isValidEmailFormat(email: String): Boolean {
+        return email.contains("@") && email.contains(".") && email.length > 5
     }
 }

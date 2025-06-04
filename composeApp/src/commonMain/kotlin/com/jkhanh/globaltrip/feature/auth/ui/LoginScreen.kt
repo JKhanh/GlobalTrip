@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.jkhanh.globaltrip.core.ui.components.GTCard
 import com.jkhanh.globaltrip.core.ui.components.GTOutlinedButton
+import org.koin.compose.koinInject
 import com.jkhanh.globaltrip.feature.auth.presentation.AuthEffect
 import com.jkhanh.globaltrip.feature.auth.presentation.AuthIntent
 import com.jkhanh.globaltrip.feature.auth.presentation.AuthViewModel
@@ -40,11 +41,11 @@ import kotlinx.coroutines.flow.collectLatest
  */
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel,
     onNavigateToMain: () -> Unit,
     onShowSnackbar: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val viewModel: AuthViewModel = koinInject()
     val uiState by viewModel.uiState.collectAsState()
     
     var email by remember { mutableStateOf("") }
@@ -129,9 +130,18 @@ fun LoginScreen(
                         email = email,
                         password = password,
                         name = name,
-                        onEmailChange = { email = it },
-                        onPasswordChange = { password = it },
-                        onNameChange = { name = it },
+                        onEmailChange = { 
+                            email = it
+                            viewModel.handleIntent(AuthIntent.ValidateEmail(it))
+                        },
+                        onPasswordChange = { 
+                            password = it
+                            viewModel.handleIntent(AuthIntent.ValidatePassword(it))
+                        },
+                        onNameChange = { 
+                            name = it
+                            viewModel.handleIntent(AuthIntent.ValidateName(it))
+                        },
                         onSubmit = {
                             if (uiState.isSignInMode) {
                                 viewModel.handleIntent(AuthIntent.SignIn(email, password))

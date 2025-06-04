@@ -20,19 +20,24 @@ class SignUpUseCase(
      * @return AuthResult containing user data or error
      */
     suspend operator fun invoke(email: String, password: String, name: String? = null): AuthResult<AuthUser> {
+        println("🔑 DEBUG: SignUpUseCase called with email: $email, name: $name")
+        
         // Validate email
         if (email.isBlank() || !isValidEmail(email)) {
+            println("🔑 DEBUG: SignUpUseCase - invalid email")
             return AuthResult.Error(AuthError.InvalidCredentials)
         }
         
         // Validate password
         if (password.length < 6) {
+            println("🔑 DEBUG: SignUpUseCase - weak password")
             return AuthResult.Error(AuthError.WeakPassword)
         }
         
         // Validate name if provided
         val trimmedName = name?.trim()?.takeIf { it.isNotBlank() }
         
+        println("🔑 DEBUG: SignUpUseCase - delegating to repository")
         // Delegate to repository
         return authRepository.signUp(email.trim(), password, trimmedName)
     }

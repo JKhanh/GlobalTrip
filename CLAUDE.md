@@ -59,7 +59,8 @@ GlobalTrip is a Kotlin Multiplatform (KMP) travel planning application using Cle
 ### Key Technologies
 
 - **UI**: Compose Multiplatform (shared UI across all platforms)
-- **DI**: Koin for dependency injection
+- **DI**: Manual dependency injection pattern
+- **Authentication**: Supabase Auth (email/password, OAuth)
 - **Database**: SQLDelight with platform-specific drivers
 - **Navigation**: JetBrains Compose Navigation
 - **Async**: Coroutines and Flow for reactive programming

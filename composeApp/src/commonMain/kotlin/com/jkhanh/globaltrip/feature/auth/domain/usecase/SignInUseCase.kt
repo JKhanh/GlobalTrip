@@ -18,15 +18,20 @@ class SignInUseCase(
      * @return AuthResult containing user data or error
      */
     suspend operator fun invoke(email: String, password: String): AuthResult<AuthUser> {
+        println("🔑 DEBUG: SignInUseCase called with email: $email")
+        
         // Validate input
         if (email.isBlank()) {
+            println("🔑 DEBUG: SignInUseCase - email is blank")
             return AuthResult.Error(com.jkhanh.globaltrip.core.domain.model.AuthError.InvalidCredentials)
         }
         
         if (password.isBlank()) {
+            println("🔑 DEBUG: SignInUseCase - password is blank")
             return AuthResult.Error(com.jkhanh.globaltrip.core.domain.model.AuthError.InvalidCredentials)
         }
         
+        println("🔑 DEBUG: SignInUseCase - delegating to repository")
         // Delegate to repository
         return authRepository.signIn(email.trim(), password)
     }

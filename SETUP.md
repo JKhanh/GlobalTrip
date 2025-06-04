@@ -33,10 +33,26 @@ SUPABASE_ANON_KEY=your-anon-key-here
 1. Copy `gradle.properties.template` to `gradle.properties`
 2. Replace placeholder values with your actual Supabase credentials
 
-### 4. Update SupabaseClient.kt
-If you want to use BuildConfig (recommended for production):
-1. Add BuildConfig fields in `build.gradle.kts`
-2. Update `SupabaseClient.kt` to read from BuildConfig
+### 4. Platform-Specific Credential Configuration
+
+Each platform requires secure credential configuration:
+
+#### Android
+Automatically reads from `local.properties` via BuildConfig at build time.
+
+#### iOS  
+Add credentials to your `Info.plist` file:
+```xml
+<key>SUPABASE_URL</key>
+<string>https://your-project-id.supabase.co</string>
+<key>SUPABASE_ANON_KEY</key>
+<string>your-anon-key-here</string>
+```
+
+#### WASM/Web
+Currently requires runtime configuration by the hosting web application. The WASM bundle does not contain hardcoded credentials for security.
+
+**IMPORTANT**: Never commit actual credentials to version control. The implementations above ensure credentials are provided at build/runtime only.
 
 ## Running the App
 

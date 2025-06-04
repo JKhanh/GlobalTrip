@@ -26,13 +26,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.jkhanh.globaltrip.core.domain.model.AuthState
 import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
-import com.jkhanh.globaltrip.di.AppModule
+import com.jkhanh.globaltrip.feature.auth.presentation.AuthViewModel
+import com.jkhanh.globaltrip.feature.auth.domain.usecase.ObserveAuthStateUseCase
 import com.jkhanh.globaltrip.feature.auth.ui.LoginScreen
 import com.jkhanh.globaltrip.feature.auth.ui.RegisterScreen
 import com.jkhanh.globaltrip.feature.settings.ui.SettingsScreen
 import com.jkhanh.globaltrip.feature.trips.ui.TripListScreen
 import com.jkhanh.globaltrip.feature.trips.ui.create.TripCreateScreen
+import com.jkhanh.globaltrip.feature.trips.presentation.TripListViewModel
+import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.compose.koinInject
 
 /**
  * Main navigation host for the app using type-safe routes
@@ -43,10 +47,10 @@ fun AppNavHost(
     onThemeSelected: (GlobalTripThemeOption) -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
-    // Auth state management
-    val authViewModel = remember { AppModule.provideAuthViewModel() }
+    // Auth state management using Koin injection
+    val authViewModel: AuthViewModel = koinInject()
     val authUiState by authViewModel.uiState.collectAsState()
-    val observeAuthStateUseCase = remember { AppModule.provideObserveAuthStateUseCase() }
+    val observeAuthStateUseCase: ObserveAuthStateUseCase = koinInject()
     val authState by observeAuthStateUseCase().collectAsState(initial = AuthState.Loading)
     
     // Determine start destination based on auth state
@@ -123,7 +127,7 @@ fun AppNavHost(
             ) {
                 // Main tabs
                 composable<Trips> {
-                    val viewModel = remember { AppModule.provideTripListViewModel() }
+                    val viewModel: TripListViewModel = koinInject()
                     
                     TripListScreen(
                         viewModel = viewModel,
@@ -181,7 +185,7 @@ fun AppNavHost(
                 }
                 
                 composable<TripCreate> {
-                    val viewModel = remember { AppModule.provideTripCreateViewModel() }
+                    val viewModel: TripCreateViewModel = koinInject()
                     
                     TripCreateScreen(
                         viewModel = viewModel,
@@ -208,7 +212,6 @@ fun AppNavHost(
                 // Auth screens
                 composable<Login> {
                     LoginScreen(
-                        viewModel = authViewModel,
                         onNavigateToMain = {
                             navController.navigate(Trips) {
                                 popUpTo(Login) { inclusive = true }
@@ -224,7 +227,6 @@ fun AppNavHost(
                 
                 composable<SignUp> {
                     RegisterScreen(
-                        viewModel = authViewModel,
                         onNavigateToLogin = {
                             navController.navigate(Login) {
                                 popUpTo(SignUp) { inclusive = true }

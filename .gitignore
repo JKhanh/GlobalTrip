@@ -22,3 +22,7 @@ captures
 .env
 *.key
 gradle.properties.local
+
+# iOS Info.plist with credentials (if configured)
+# iosApp/iosApp/Info.plist.local
+# Add this line if you create a separate Info.plist file with credentials

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(./gradlew:*)",
       "Bash(find:*)",
-      "mcp__supabase__list_organizations"
+      "mcp__supabase__list_organizations",
+      "WebFetch(domain:insert-koin.io)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
