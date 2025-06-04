@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -15,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -36,6 +38,7 @@ import com.jkhanh.globaltrip.feature.trips.ui.create.TripCreateScreen
 import com.jkhanh.globaltrip.feature.trips.presentation.TripListViewModel
 import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 /**
@@ -47,20 +50,20 @@ fun AppNavHost(
     onThemeSelected: (GlobalTripThemeOption) -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
+    // Scaffold state for snackbar
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+    
     // Auth state management using Koin injection
     val authViewModel: AuthViewModel = koinInject()
     val authUiState by authViewModel.uiState.collectAsState()
     val observeAuthStateUseCase: ObserveAuthStateUseCase = koinInject()
     val authState by observeAuthStateUseCase().collectAsState(initial = AuthState.Loading)
     
-    // Determine start destination based on auth state
-    val startDestination = when (authState) {
-        is AuthState.Authenticated -> Trips
-        is AuthState.Unauthenticated -> Login
-        is AuthState.Loading -> Login // Show login while loading
-    }
+    // Start with main app - authentication is optional
+    val startDestination = Trips
     
-    // Handle auth state navigation
+    // Handle auth state navigation (only for authenticated users navigating from auth screens)
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Authenticated -> {
@@ -74,14 +77,7 @@ fun AppNavHost(
                 }
             }
             is AuthState.Unauthenticated -> {
-                // Navigate to login if currently on protected screens
-                val currentRoute = navController.currentBackStackEntry?.destination?.route
-                if (currentRoute != Login::class.simpleName && currentRoute != SignUp::class.simpleName) {
-                    navController.navigate(Login) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+                // No automatic navigation - users can stay in main app without auth
             }
             is AuthState.Loading -> {
                 // Stay on current screen while loading
@@ -90,20 +86,24 @@ fun AppNavHost(
     }
     
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRouteClass = navBackStackEntry?.destination?.route?.let { route ->
-        when (route) {
-            Trips::class.simpleName -> Trips
-            Maps::class.simpleName -> Maps
-            Expenses::class.simpleName -> Expenses
-            Settings::class.simpleName -> Settings
-            else -> null
-        }
+    val currentRoute = navBackStackEntry?.destination?.route
+    
+    val currentRouteClass: Any? = when (currentRoute) {
+        "com.jkhanh.globaltrip.navigation.Trips" -> Trips
+        "com.jkhanh.globaltrip.navigation.Maps" -> Maps
+        "com.jkhanh.globaltrip.navigation.Expenses" -> Expenses
+        "com.jkhanh.globaltrip.navigation.Settings" -> Settings
+        else -> null
     }
     
-    // Show bottom navigation only for authenticated users on main tabs
-    val showBottomNav = authState is AuthState.Authenticated && isMainTab(currentRouteClass)
+    // Show bottom navigation for all main tabs (auth not required)
+    val showBottomNav = isMainTab(currentRouteClass)
     
     Scaffold(
+        scaffoldState = scaffoldState,
+        snackbarHost = {
+            SnackbarHost(hostState = scaffoldState.snackbarHostState)
+        },
         bottomBar = {
             if (showBottomNav) {
                 BottomNavigationBar(
@@ -168,6 +168,11 @@ fun AppNavHost(
                                     com.jkhanh.globaltrip.feature.auth.presentation.AuthIntent.SignOut
                                 )
                             }
+                        } else null,
+                        onSignIn = if (authState !is AuthState.Authenticated) {
+                            {
+                                navController.navigate(Login)
+                            }
                         } else null
                     )
                 }
@@ -219,8 +224,9 @@ fun AppNavHost(
                             }
                         },
                         onShowSnackbar = { message ->
-                            // TODO: Show snackbar - for now just log
-                            println("Snackbar: $message")
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar(message)
+                            }
                         }
                     )
                 }
@@ -240,8 +246,9 @@ fun AppNavHost(
                             }
                         },
                         onShowSnackbar = { message ->
-                            // TODO: Show snackbar - for now just log
-                            println("Snackbar: $message")
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar(message)
+                            }
                         }
                     )
                 }

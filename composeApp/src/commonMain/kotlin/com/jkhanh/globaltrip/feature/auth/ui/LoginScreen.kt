@@ -50,13 +50,19 @@ fun LoginScreen(
     
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
+    
+    // Local validation for password matching
+    val passwordsMatch = password == confirmPassword || confirmPassword.isEmpty()
     
     // Handle effects
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {
-                is AuthEffect.NavigateToMain -> onNavigateToMain()
+                is AuthEffect.NavigateToMain -> {
+                    // Navigation handled by AppNavHost based on auth state
+                }
                 is AuthEffect.NavigateToLogin -> {
                     // Already on login screen
                 }
@@ -129,6 +135,7 @@ fun LoginScreen(
                     AuthForm(
                         email = email,
                         password = password,
+                        confirmPassword = confirmPassword,
                         name = name,
                         onEmailChange = { 
                             email = it
@@ -138,6 +145,9 @@ fun LoginScreen(
                             password = it
                             viewModel.handleIntent(AuthIntent.ValidatePassword(it))
                         },
+                        onConfirmPasswordChange = { 
+                            confirmPassword = it
+                        },
                         onNameChange = { 
                             name = it
                             viewModel.handleIntent(AuthIntent.ValidateName(it))
@@ -146,7 +156,9 @@ fun LoginScreen(
                             if (uiState.isSignInMode) {
                                 viewModel.handleIntent(AuthIntent.SignIn(email, password))
                             } else {
-                                viewModel.handleIntent(AuthIntent.SignUp(email, password, name.takeIf { it.isNotBlank() }))
+                                if (passwordsMatch) {
+                                    viewModel.handleIntent(AuthIntent.SignUp(email, password, name.takeIf { it.isNotBlank() }))
+                                }
                             }
                         },
                         isSignUpMode = !uiState.isSignInMode,
@@ -154,7 +166,12 @@ fun LoginScreen(
                         isEmailValid = uiState.isEmailValid,
                         isPasswordValid = uiState.isPasswordValid,
                         isNameValid = uiState.isNameValid,
-                        isFormValid = uiState.isCurrentFormValid
+                        isPasswordsMatch = passwordsMatch,
+                        isFormValid = if (uiState.isSignInMode) {
+                            uiState.isCurrentFormValid
+                        } else {
+                            uiState.isCurrentFormValid && passwordsMatch
+                        }
                     )
                     
                     // Forgot Password (only in sign in mode)

@@ -30,19 +30,23 @@ fun AuthForm(
     email: String,
     password: String,
     name: String = "",
+    confirmPassword: String = "",
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit = {},
+    onConfirmPasswordChange: (String) -> Unit = {},
     onSubmit: () -> Unit,
     isSignUpMode: Boolean = false,
     isLoading: Boolean = false,
     isEmailValid: Boolean = true,
     isPasswordValid: Boolean = true,
     isNameValid: Boolean = true,
+    isPasswordsMatch: Boolean = true,
     isFormValid: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
+    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
     
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -90,20 +94,45 @@ fun AuthForm(
                 !isPasswordValid -> "Please enter your password"
                 else -> null
             },
-            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                     Text(
-                        text = if (isPasswordVisible) "Hide" else "Show",
+                        text = if (isConfirmPasswordVisible) "Hide" else "Show",
                         style = androidx.compose.material.MaterialTheme.typography.caption
                     )
                 }
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
+                imeAction = if (isSignUpMode) ImeAction.Next else ImeAction.Done
             )
         )
+        
+        // Confirm Password field (only for sign up)
+        if (isSignUpMode) {
+            GTTextField(
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                label = "Confirm Password",
+                placeholder = "Re-enter your password",
+                isError = !isPasswordsMatch,
+                errorMessage = if (!isPasswordsMatch) "Passwords do not match" else null,
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Text(
+                            text = if (isPasswordVisible) "Hide" else "Show",
+                            style = androidx.compose.material.MaterialTheme.typography.caption
+                        )
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                )
+            )
+        }
         
         Spacer(modifier = Modifier.height(8.dp))
         

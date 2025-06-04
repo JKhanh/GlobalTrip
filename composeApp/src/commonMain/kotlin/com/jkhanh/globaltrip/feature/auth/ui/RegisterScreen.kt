@@ -50,13 +50,19 @@ fun RegisterScreen(
     
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
+    
+    // Local validation for password matching
+    val passwordsMatch = password == confirmPassword || confirmPassword.isEmpty()
     
     // Handle effects
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {
-                is AuthEffect.NavigateToMain -> onNavigateToMain()
+                is AuthEffect.NavigateToMain -> {
+                    // Navigation handled by AppNavHost based on auth state
+                }
                 is AuthEffect.NavigateToLogin -> onNavigateToLogin()
                 is AuthEffect.ShowSuccessMessage -> onShowSnackbar(effect.message)
                 is AuthEffect.ShowErrorMessage -> onShowSnackbar(effect.message)
@@ -116,6 +122,7 @@ fun RegisterScreen(
                     AuthForm(
                         email = email,
                         password = password,
+                        confirmPassword = confirmPassword,
                         name = name,
                         onEmailChange = { 
                             email = it
@@ -125,25 +132,31 @@ fun RegisterScreen(
                             password = it
                             viewModel.handleIntent(AuthIntent.ValidatePassword(it))
                         },
+                        onConfirmPasswordChange = { 
+                            confirmPassword = it
+                        },
                         onNameChange = { 
                             name = it
                             viewModel.handleIntent(AuthIntent.ValidateName(it))
                         },
                         onSubmit = {
-                            viewModel.handleIntent(
-                                AuthIntent.SignUp(
-                                    email = email,
-                                    password = password,
-                                    name = name.takeIf { it.isNotBlank() }
+                            if (passwordsMatch) {
+                                viewModel.handleIntent(
+                                    AuthIntent.SignUp(
+                                        email = email,
+                                        password = password,
+                                        name = name.takeIf { it.isNotBlank() }
+                                    )
                                 )
-                            )
+                            }
                         },
                         isSignUpMode = true,
                         isLoading = uiState.isLoading,
                         isEmailValid = uiState.isEmailValid,
                         isPasswordValid = uiState.isPasswordValid,
                         isNameValid = uiState.isNameValid,
-                        isFormValid = uiState.isSignUpFormValid
+                        isPasswordsMatch = passwordsMatch,
+                        isFormValid = uiState.isSignUpFormValid && passwordsMatch
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
