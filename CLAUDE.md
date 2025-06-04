@@ -59,22 +59,48 @@ GlobalTrip is a Kotlin Multiplatform (KMP) travel planning application using Cle
 ### Key Technologies
 
 - **UI**: Compose Multiplatform (shared UI across all platforms)
-- **DI**: Manual dependency injection pattern
+- **DI**: Koin 4.0.3 for dependency injection with verify() API
 - **Authentication**: Supabase Auth (email/password, OAuth)
 - **Database**: SQLDelight with platform-specific drivers
 - **Navigation**: JetBrains Compose Navigation
 - **Async**: Coroutines and Flow for reactive programming
+
+### Dependency Injection (Koin)
+
+**Koin Module Structure:**
+- **NetworkModule**: Supabase client configuration
+- **CoreModule**: Storage and basic services (SecureStorage, TripRepository)
+- **RepositoryModule**: Repository implementations (AuthRepository)
+- **AuthModule**: Authentication use cases and ViewModels
+- **TripsModule**: Trip management use cases and ViewModels
+- **SettingsModule**: App settings repository and ViewModel
+
+**Usage in Composables:**
+```kotlin
+@Composable
+fun MyScreen() {
+    val viewModel: MyViewModel = koinInject()
+    // Use viewModel...
+}
+```
+
+**Initialization:**
+- **Android**: `GlobalTripApplication.onCreate()` calls `initKoin()`
+- **iOS**: `MainViewController()` calls `initKoin()`
+- **Tests**: Use `globalTripAppModule.verify()` for DI validation
 
 ### Module Structure
 
 - **Feature modules** (`feature/trips`, `feature/auth`, etc.) - isolated features
 - **Core modules** (`core/domain`, `core/data`, `core/ui`) - shared infrastructure
 - **Platform source sets** (`androidMain`, `iosMain`, `wasmJsMain`) - platform code
+- **DI modules** (`di/*.kt`) - Koin dependency injection configuration
 
 ### Testing Strategy
 
 - Unit tests for ViewModels and business logic
 - Integration tests for repositories  
 - UI tests for Composables
+- DI verification tests using Koin's `verify()` API
 - Follow AAA pattern with descriptive naming
 - Target 70% coverage per module
