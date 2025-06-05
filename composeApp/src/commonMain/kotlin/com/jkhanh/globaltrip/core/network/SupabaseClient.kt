@@ -1,5 +1,6 @@
 package com.jkhanh.globaltrip.core.network
 
+import com.jkhanh.globaltrip.core.logging.Logger
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
@@ -14,10 +15,11 @@ import io.github.jan.supabase.auth.auth
  * - WASM: Environment variables (fallback to hardcoded for now)
  */
 object SupabaseClient {
+    private const val TAG = "SupabaseClient"
     
     private val config by lazy { 
         val config = getSupabaseConfig()
-        println("🔧 DEBUG: Supabase config loaded - URL: ${config.url.take(30)}..., Key length: ${config.anonKey.length}")
+        Logger.d("Supabase config loaded - URL: ${config.url.take(30)}..., Key length: ${config.anonKey.length}", TAG)
         config
     }
     
@@ -31,11 +33,10 @@ object SupabaseClient {
                     // Auth configuration will be added here
                 }
             }
-            println("🔧 DEBUG: Supabase client created successfully")
+            Logger.i("Supabase client created successfully", TAG)
             client
         } catch (e: Exception) {
-            println("🔧 DEBUG: Failed to create Supabase client: ${e.message}")
-            e.printStackTrace()
+            Logger.e("Failed to create Supabase client", TAG, e)
             throw e
         }
     }

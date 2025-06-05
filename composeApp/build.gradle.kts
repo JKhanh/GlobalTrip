@@ -82,6 +82,9 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            
+            // Logging
+            implementation(libs.napier)
         }
         
         commonTest.dependencies {
