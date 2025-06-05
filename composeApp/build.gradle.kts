@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -54,18 +55,6 @@ kotlin {
     // }
     
     sourceSets {
-        
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.sqldelight.android)
-            implementation(libs.koin.android)
-        }
-        
-        iosMain.dependencies {
-            implementation(libs.sqldelight.native)
-        }
-        
         // Temporarily disabled WasmJS target due to SQLDelight compatibility issues
         // wasmJsMain.dependencies {
         //     // For WasmJS, we'll need to implement a mock version of the repository
@@ -75,6 +64,7 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.koin.test)
         }
         
         commonMain.dependencies {
@@ -93,26 +83,37 @@ kotlin {
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
             
-            // Koin
+            // Koin DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
             
             // Compose Navigation from JetBrains - correct implementation
             implementation(libs.androidx.navigation.compose)
             
             // Date Time Picker
             implementation(libs.kmp.date.time.picker)
+            
+            // Supabase
+            implementation(libs.supabase.auth)
+            implementation(libs.supabase.auth.compose)
+            implementation(libs.ktor.client.core)
+            
+            // Logging
+            implementation(libs.napier)
         }
         
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android)
+            implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
         }
         
         iosMain.dependencies {
             implementation(libs.sqldelight.native)
+            implementation(libs.ktor.client.darwin)
         }
     }
 }
@@ -127,6 +128,17 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        
+        // Read Supabase credentials from local.properties
+        val localProperties = Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localPropertiesFile.inputStream().use { load(it) }
+            }
+        }
+        
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL", "")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty("SUPABASE_ANON_KEY", "")}\"")
     }
     packaging {
         resources {
@@ -137,6 +149,9 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

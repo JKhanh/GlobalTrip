@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Add these entries to your iosApp/iosApp/Info.plist file -->
+    <!-- Replace with your actual Supabase credentials -->
+    
+    <key>SUPABASE_URL</key>
+    <string>https://your-project-id.supabase.co</string>
+    
+    <key>SUPABASE_ANON_KEY</key>
+    <string>your-anon-key-here</string>
+    
+    <!-- 
+    Example with real values (DO NOT COMMIT):
+    <key>SUPABASE_URL</key>
+    <string>https://abcdefgh12345678.supabase.co</string>
+    
+    <key>SUPABASE_ANON_KEY</key>
+    <string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</string>
+    -->
+</dict>
+</plist>
