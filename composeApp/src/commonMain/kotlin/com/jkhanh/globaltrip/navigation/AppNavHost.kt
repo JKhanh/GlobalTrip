@@ -1,6 +1,7 @@
 package com.jkhanh.globaltrip.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
@@ -15,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -27,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.jkhanh.globaltrip.core.domain.model.AuthState
+import com.jkhanh.globaltrip.core.ui.components.EmailVerificationBanner
 import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
 import com.jkhanh.globaltrip.feature.auth.presentation.AuthViewModel
 import com.jkhanh.globaltrip.feature.auth.domain.usecase.ObserveAuthStateUseCase
@@ -56,9 +60,15 @@ fun AppNavHost(
     
     // Auth state management using Koin injection
     val authViewModel: AuthViewModel = koinInject()
-    val authUiState by authViewModel.uiState.collectAsState()
     val observeAuthStateUseCase: ObserveAuthStateUseCase = koinInject()
     val authState by observeAuthStateUseCase().collectAsState(initial = AuthState.Loading)
+    
+    // Email verification banner state
+    var showEmailVerificationBanner by remember { mutableStateOf(true) }
+    val shouldShowBanner = when (val state = authState) {
+        is AuthState.Authenticated -> !state.user.isEmailVerified && showEmailVerificationBanner
+        else -> false
+    }
     
     // Start with main app - authentication is optional
     val startDestination = Trips
@@ -69,7 +79,8 @@ fun AppNavHost(
             is AuthState.Authenticated -> {
                 // Navigate to main app if currently on auth screens
                 val currentRoute = navController.currentBackStackEntry?.destination?.route
-                if (currentRoute == Login::class.simpleName || currentRoute == SignUp::class.simpleName) {
+                
+                if (currentRoute?.contains("Login") == true || currentRoute?.contains("SignUp") == true) {
                     navController.navigate(Trips) {
                         popUpTo(Login) { inclusive = true }
                         launchSingleTop = true
@@ -121,10 +132,27 @@ fun AppNavHost(
                 .padding(paddingValues),
             color = MaterialTheme.colors.background
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = startDestination
-            ) {
+            Column {
+                // Email verification banner
+                EmailVerificationBanner(
+                    isVisible = shouldShowBanner,
+                    onDismiss = { showEmailVerificationBanner = false },
+                    onVerifyClick = {
+                        // Navigate to a verification screen or show dialog
+                        coroutineScope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                "Email verification feature coming soon!"
+                            )
+                        }
+                    }
+                )
+                
+                // Main navigation content
+                NavHost(
+                    navController = navController,
+                    startDestination = startDestination,
+                    modifier = Modifier.weight(1f)
+                ) {
                 // Main tabs
                 composable<Trips> {
                     val viewModel: TripListViewModel = koinInject()
@@ -263,6 +291,7 @@ fun AppNavHost(
                     ) {
                         Text("Location Detail Screen for location: ${locationDetail.locationId}")
                     }
+                }
                 }
             }
         }

@@ -12,5 +12,6 @@ data class AuthUser(
     val name: String? = null,
     val avatarUrl: String? = null,
     val createdAt: String? = null,
-    val lastSignInAt: String? = null
+    val lastSignInAt: String? = null,
+    val isEmailVerified: Boolean = false
 )

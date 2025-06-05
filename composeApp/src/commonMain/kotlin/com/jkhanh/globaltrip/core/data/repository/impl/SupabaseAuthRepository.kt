@@ -10,7 +10,10 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -22,6 +25,13 @@ class SupabaseAuthRepository(
     private val supabaseClient: SupabaseClient,
     private val secureStorage: SecureStorage
 ) : AuthRepository {
+    
+    // Store temporary unverified user for immediate access
+    private var temporaryUser: AuthUser? = null
+    
+    // Reactive auth state flow
+    private val _authStateFlow = MutableStateFlow<AuthState>(AuthState.Loading)
+    private val authStateFlow = _authStateFlow.asStateFlow()
     
     override suspend fun signIn(email: String, password: String): AuthResult<AuthUser> {
         return try {
@@ -42,7 +52,8 @@ class SupabaseAuthRepository(
                     name = currentUser.userMetadata?.get("name")?.toString(),
                     avatarUrl = currentUser.userMetadata?.get("avatar_url")?.toString(),
                     createdAt = currentUser.createdAt?.toString(),
-                    lastSignInAt = currentUser.lastSignInAt?.toString()
+                    lastSignInAt = currentUser.lastSignInAt?.toString(),
+                    isEmailVerified = currentUser.emailConfirmedAt != null
                 )
                 
                 // Store tokens securely
@@ -52,6 +63,9 @@ class SupabaseAuthRepository(
                         secureStorage.saveToken(SecureStorage.REFRESH_TOKEN_KEY, it)
                     }
                 }
+                
+                // Update auth state to authenticated
+                _authStateFlow.value = AuthState.Authenticated(authUser)
                 
                 println("🔐 DEBUG: Sign in successful")
                 AuthResult.Success(authUser)
@@ -63,6 +77,34 @@ class SupabaseAuthRepository(
             println("🔐 DEBUG: Sign in exception: ${e.message}")
             println("🔐 DEBUG: Exception type: ${e::class.simpleName}")
             e.printStackTrace()
+            
+            // Handle email not confirmed case specially for sign in
+            if (e.message?.contains("email_not_confirmed", ignoreCase = true) == true ||
+                e.message?.contains("Email not confirmed", ignoreCase = true) == true) {
+                println("🔐 DEBUG: Email not confirmed - creating unverified user session")
+                
+                // Create an unverified user object for immediate access
+                // This allows users to use the app while encouraging email verification
+                val unverifiedUser = AuthUser(
+                    id = "unverified_${email.hashCode()}", // Temporary ID based on email
+                    email = email,
+                    name = null,
+                    avatarUrl = null,
+                    createdAt = null,
+                    lastSignInAt = Clock.System.now().toString(),
+                    isEmailVerified = false
+                )
+                
+                // Store the temporary user for auth state tracking
+                temporaryUser = unverifiedUser
+                
+                // Update auth state to authenticated
+                _authStateFlow.value = AuthState.Authenticated(unverifiedUser)
+                
+                println("🔐 DEBUG: Created unverified user session for immediate access")
+                return AuthResult.Success(unverifiedUser)
+            }
+            
             AuthResult.Error(mapExceptionToAuthError(e))
         }
     }
@@ -88,6 +130,8 @@ class SupabaseAuthRepository(
                             put("name", name)
                         }
                     }
+                    // Note: Email confirmation behavior is controlled by Supabase project settings
+                    // For immediate access, ensure "Enable email confirmations" is disabled in Supabase Auth settings
                 }
             } catch (signUpError: Exception) {
                 println("🔐 DEBUG: Sign up API call failed: ${signUpError.message}")
@@ -109,7 +153,8 @@ class SupabaseAuthRepository(
                     name = currentUser.userMetadata?.get("name")?.toString() ?: name,
                     avatarUrl = currentUser.userMetadata?.get("avatar_url")?.toString(),
                     createdAt = currentUser.createdAt?.toString(),
-                    lastSignInAt = currentUser.lastSignInAt?.toString()
+                    lastSignInAt = currentUser.lastSignInAt?.toString(),
+                    isEmailVerified = currentUser.emailConfirmedAt != null
                 )
                 
                 // Store tokens securely
@@ -120,19 +165,39 @@ class SupabaseAuthRepository(
                     }
                 }
                 
-                println("🔐 DEBUG: Sign up successful with immediate sign in")
+                // Update auth state to authenticated
+                _authStateFlow.value = AuthState.Authenticated(authUser)
+                
+                println("🔐 DEBUG: Sign up successful with immediate sign in, email verified: ${authUser.isEmailVerified}")
                 AuthResult.Success(authUser)
             } else {
-                // User was created but needs email confirmation (typical case)
-                println("🔐 DEBUG: Sign up successful but no current user - checking email confirmation")
+                // User was created but needs to be signed in manually
+                println("🔐 DEBUG: Sign up successful but no current user - attempting automatic sign in")
                 
-                // In Supabase, signUp returns success even when email confirmation is required
-                // The user account is created but not authenticated until email is confirmed
                 if (signUpResult != null) {
-                    println("🔐 DEBUG: Sign up successful - user created, email confirmation required")
-                    
-                    // Return a special error that indicates successful signup but needs verification
-                    AuthResult.Error(AuthError.EmailNotVerified)
+                    // Try to sign in immediately after signup
+                    try {
+                        val signInResult = signIn(email, password)
+                        when (signInResult) {
+                            is AuthResult.Success -> {
+                                // Update the user with unverified email status
+                                val updatedUser = signInResult.data.copy(isEmailVerified = false)
+                                
+                                // Update auth state to authenticated
+                                _authStateFlow.value = AuthState.Authenticated(updatedUser)
+                                
+                                println("🔐 DEBUG: Auto sign-in after signup successful, email unverified")
+                                AuthResult.Success(updatedUser)
+                            }
+                            is AuthResult.Error -> {
+                                println("🔐 DEBUG: Auto sign-in failed, user needs to verify email first")
+                                AuthResult.Error(AuthError.EmailNotVerified)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        println("🔐 DEBUG: Auto sign-in exception: ${e.message}")
+                        AuthResult.Error(AuthError.EmailNotVerified)
+                    }
                 } else {
                     println("🔐 DEBUG: Sign up failed - no result returned")
                     AuthResult.Error(AuthError.Unknown("Failed to create user - no response from server"))
@@ -171,6 +236,12 @@ class SupabaseAuthRepository(
         return try {
             supabaseClient.auth.signOut()
             secureStorage.clearAll()
+            // Clear temporary user
+            temporaryUser = null
+            
+            // Update auth state to unauthenticated
+            _authStateFlow.value = AuthState.Unauthenticated
+            
             AuthResult.Success(Unit)
         } catch (e: Exception) {
             AuthResult.Error(mapExceptionToAuthError(e))
@@ -179,6 +250,9 @@ class SupabaseAuthRepository(
     
     override suspend fun getCurrentUser(): AuthUser? {
         return try {
+            // Check for temporary unverified user first
+            temporaryUser?.let { return it }
+            
             val currentUser = supabaseClient.auth.currentUserOrNull()
             currentUser?.let {
                 AuthUser(
@@ -187,7 +261,8 @@ class SupabaseAuthRepository(
                     name = it.userMetadata?.get("name")?.toString(),
                     avatarUrl = it.userMetadata?.get("avatar_url")?.toString(),
                     createdAt = it.createdAt?.toString(),
-                    lastSignInAt = it.lastSignInAt?.toString()
+                    lastSignInAt = it.lastSignInAt?.toString(),
+                    isEmailVerified = it.emailConfirmedAt != null
                 )
             }
         } catch (e: Exception) {
@@ -196,24 +271,31 @@ class SupabaseAuthRepository(
     }
     
     override fun observeAuthState(): Flow<AuthState> = flow {
+        // Emit initial loading state
         emit(AuthState.Loading)
         
+        // Initialize auth state based on current session
         try {
-            // Check if we have a valid session
             val currentUser = getCurrentUser()
-            
-            if (currentUser != null) {
-                emit(AuthState.Authenticated(currentUser))
+            val initialState = if (currentUser != null) {
+                AuthState.Authenticated(currentUser)
             } else {
-                emit(AuthState.Unauthenticated)
+                AuthState.Unauthenticated
             }
+            _authStateFlow.value = initialState
+            emit(initialState)
         } catch (e: Exception) {
             println("🔐 DEBUG: observeAuthState error: ${e.message}")
+            _authStateFlow.value = AuthState.Unauthenticated
             emit(AuthState.Unauthenticated)
         }
         
-        // TODO: Implement real-time auth state changes listener
-        // This would typically use Supabase real-time subscriptions
+        // Then emit all subsequent changes from the reactive flow
+        authStateFlow.collect { state ->
+            if (state != AuthState.Loading) {
+                emit(state)
+            }
+        }
     }
     
     override suspend fun resetPassword(email: String): AuthResult<Unit> {

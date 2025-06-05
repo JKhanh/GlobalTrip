@@ -84,7 +84,7 @@ class AuthViewModel(
                                 isSignInSuccessful = true
                             )
                         }
-                        _effects.trySend(AuthEffect.NavigateToMain)
+                        // Navigation handled by auth state observer in AppNavHost
                     }
                     is AuthState.Unauthenticated -> {
                         _uiState.update { 
@@ -137,6 +137,7 @@ class AuthViewModel(
                         )
                     }
                     _effects.trySend(AuthEffect.ShowSuccessMessage("Welcome back!"))
+                    // Navigation handled by auth state observer in AppNavHost
                 }
                 is AuthResult.Error -> {
                     println("📱 DEBUG: Sign in use case failed: ${result.error}")
@@ -179,13 +180,14 @@ class AuthViewModel(
                             error = null
                         )
                     }
-                    _effects.trySend(AuthEffect.ShowSuccessMessage("Account created successfully!"))
                     
-                    // Auto-navigate to login screen after a brief delay
-                    viewModelScope.launch {
-                        kotlinx.coroutines.delay(2500) // Wait 2.5 seconds to show success message
-                        _effects.trySend(AuthEffect.NavigateToLogin)
+                    if (result.data.isEmailVerified) {
+                        _effects.trySend(AuthEffect.ShowSuccessMessage("Account created and verified!"))
+                    } else {
+                        _effects.trySend(AuthEffect.ShowSuccessMessage("Account created! You can start using the app. Please verify your email when convenient."))
                     }
+                    
+                    // Navigation handled by auth state observer in AppNavHost
                 }
                 is AuthResult.Error -> {
                     println("📱 DEBUG: Sign up use case failed: ${result.error}")

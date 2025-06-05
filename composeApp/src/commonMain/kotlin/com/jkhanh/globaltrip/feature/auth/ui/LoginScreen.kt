@@ -61,7 +61,7 @@ fun LoginScreen(
         viewModel.effects.collectLatest { effect ->
             when (effect) {
                 is AuthEffect.NavigateToMain -> {
-                    // Navigation handled by AppNavHost based on auth state
+                    // Navigation handled by auth state observer in AppNavHost
                 }
                 is AuthEffect.NavigateToLogin -> {
                     // Already on login screen
