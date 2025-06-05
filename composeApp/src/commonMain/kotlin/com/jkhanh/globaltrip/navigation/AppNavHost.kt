@@ -37,8 +37,10 @@ import com.jkhanh.globaltrip.feature.auth.ui.LoginScreen
 import com.jkhanh.globaltrip.feature.auth.ui.RegisterScreen
 import com.jkhanh.globaltrip.feature.settings.ui.SettingsScreen
 import com.jkhanh.globaltrip.feature.trips.ui.TripListScreen
+import com.jkhanh.globaltrip.feature.trips.ui.TripDetailScreen
 import com.jkhanh.globaltrip.feature.trips.ui.create.TripCreateScreen
 import com.jkhanh.globaltrip.feature.trips.presentation.TripListViewModel
+import com.jkhanh.globaltrip.feature.trips.presentation.TripDetailViewModel
 import com.jkhanh.globaltrip.feature.trips.presentation.TripCreateViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -206,13 +208,16 @@ fun AppNavHost(
                 // Trip screens
                 composable<TripDetail> { backStackEntry ->
                     val tripDetail = backStackEntry.toRoute<TripDetail>()
+                    val viewModel: TripDetailViewModel = koinInject()
                     
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Trip Detail Screen for trip: ${tripDetail.tripId}")
-                    }
+                    TripDetailScreen(
+                        tripId = tripDetail.tripId,
+                        onNavigateBack = { navController.navigateUp() },
+                        onNavigateToEdit = { tripId ->
+                            navController.navigate(TripEdit(tripId))
+                        },
+                        viewModel = viewModel
+                    )
                 }
                 
                 composable<TripCreate> {
