@@ -6,6 +6,7 @@ import com.jkhanh.globaltrip.core.domain.model.AuthError
 import com.jkhanh.globaltrip.core.domain.model.AuthResult
 import com.jkhanh.globaltrip.core.domain.model.AuthState
 import com.jkhanh.globaltrip.core.domain.model.getUserMessage
+import com.jkhanh.globaltrip.core.logging.Logger
 import com.jkhanh.globaltrip.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.jkhanh.globaltrip.feature.auth.domain.usecase.ObserveAuthStateUseCase
 import com.jkhanh.globaltrip.feature.auth.domain.usecase.ResetPasswordUseCase
@@ -33,6 +34,10 @@ class AuthViewModel(
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val resetPasswordUseCase: ResetPasswordUseCase
 ) : ViewModel() {
+    
+    companion object {
+        private const val TAG = "AuthViewModel"
+    }
     
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -115,19 +120,19 @@ class AuthViewModel(
      */
     private fun signIn(email: String, password: String) {
         if (!validateSignInForm(email, password)) {
-            println("📱 DEBUG: Sign in form validation failed")
+            Logger.w("Sign in form validation failed", TAG)
             return
         }
         
-        println("📱 DEBUG: Starting sign in process in ViewModel")
+        Logger.d("Starting sign in process in ViewModel", TAG)
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            println("📱 DEBUG: Calling signInUseCase")
+            Logger.d("Calling signInUseCase", TAG)
             when (val result = signInUseCase(email, password)) {
                 is AuthResult.Success -> {
-                    println("📱 DEBUG: Sign in use case successful")
+                    Logger.i("Sign in use case successful", TAG)
                     _uiState.update { 
                         it.copy(
                             isLoading = false, 
@@ -140,7 +145,7 @@ class AuthViewModel(
                     // Navigation handled by auth state observer in AppNavHost
                 }
                 is AuthResult.Error -> {
-                    println("📱 DEBUG: Sign in use case failed: ${result.error}")
+                    Logger.w("Sign in use case failed: ${result.error}", TAG)
                     _uiState.update { 
                         it.copy(
                             isLoading = false, 
@@ -159,19 +164,19 @@ class AuthViewModel(
      */
     private fun signUp(email: String, password: String, name: String?) {
         if (!validateSignUpForm(email, password, name)) {
-            println("📱 DEBUG: Sign up form validation failed")
+            Logger.w("Sign up form validation failed", TAG)
             return
         }
         
-        println("📱 DEBUG: Starting sign up process in ViewModel")
+        Logger.d("Starting sign up process in ViewModel", TAG)
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            println("📱 DEBUG: Calling signUpUseCase")
+            Logger.d("Calling signUpUseCase", TAG)
             when (val result = signUpUseCase(email, password, name)) {
                 is AuthResult.Success -> {
-                    println("📱 DEBUG: Sign up use case successful")
+                    Logger.i("Sign up use case successful", TAG)
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
@@ -190,7 +195,7 @@ class AuthViewModel(
                     // Navigation handled by auth state observer in AppNavHost
                 }
                 is AuthResult.Error -> {
-                    println("📱 DEBUG: Sign up use case failed: ${result.error}")
+                    Logger.w("Sign up use case failed: ${result.error}", TAG)
                     
                     // Handle email verification case specially for sign up
                     if (result.error is AuthError.EmailNotVerified) {

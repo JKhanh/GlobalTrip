@@ -6,7 +6,9 @@
       "mcp__supabase__list_organizations",
       "WebFetch(domain:insert-koin.io)",
       "Bash(grep:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:github.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

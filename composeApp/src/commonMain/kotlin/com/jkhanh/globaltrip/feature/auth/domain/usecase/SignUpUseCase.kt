@@ -4,6 +4,7 @@ import com.jkhanh.globaltrip.core.domain.model.AuthError
 import com.jkhanh.globaltrip.core.domain.model.AuthResult
 import com.jkhanh.globaltrip.core.domain.model.AuthUser
 import com.jkhanh.globaltrip.core.domain.repository.AuthRepository
+import com.jkhanh.globaltrip.core.logging.Logger
 
 /**
  * Use case for signing up a new user
@@ -11,6 +12,10 @@ import com.jkhanh.globaltrip.core.domain.repository.AuthRepository
 class SignUpUseCase(
     private val authRepository: AuthRepository
 ) {
+    
+    companion object {
+        private const val TAG = "SignUpUseCase"
+    }
     
     /**
      * Execute sign up operation
@@ -20,24 +25,24 @@ class SignUpUseCase(
      * @return AuthResult containing user data or error
      */
     suspend operator fun invoke(email: String, password: String, name: String? = null): AuthResult<AuthUser> {
-        println("🔑 DEBUG: SignUpUseCase called with email: $email, name: $name")
+        Logger.d("SignUpUseCase called with email: $email, name: $name", TAG)
         
         // Validate email
         if (email.isBlank() || !isValidEmail(email)) {
-            println("🔑 DEBUG: SignUpUseCase - invalid email")
+            Logger.w("SignUpUseCase - invalid email", TAG)
             return AuthResult.Error(AuthError.InvalidCredentials)
         }
         
         // Validate password
         if (password.length < 6) {
-            println("🔑 DEBUG: SignUpUseCase - weak password")
+            Logger.w("SignUpUseCase - weak password", TAG)
             return AuthResult.Error(AuthError.WeakPassword)
         }
         
         // Validate name if provided
         val trimmedName = name?.trim()?.takeIf { it.isNotBlank() }
         
-        println("🔑 DEBUG: SignUpUseCase - delegating to repository")
+        Logger.d("SignUpUseCase - delegating to repository", TAG)
         // Delegate to repository
         return authRepository.signUp(email.trim(), password, trimmedName)
     }
