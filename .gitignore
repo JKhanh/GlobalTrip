@@ -16,3 +16,13 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+# Sensitive configuration files
+.mcp.json
+.env
+*.key
+gradle.properties.local
+
+# iOS Info.plist with credentials (if configured)
+# iosApp/iosApp/Info.plist.local
+# Add this line if you create a separate Info.plist file with credentials

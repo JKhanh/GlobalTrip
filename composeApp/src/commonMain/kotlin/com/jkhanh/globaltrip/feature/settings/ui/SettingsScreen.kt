@@ -16,7 +16,9 @@ import com.jkhanh.globaltrip.core.ui.theme.GlobalTripThemeOption
 @Composable
 fun SettingsScreen(
     currentTheme: GlobalTripThemeOption,
-    onThemeSelected: (GlobalTripThemeOption) -> Unit
+    onThemeSelected: (GlobalTripThemeOption) -> Unit,
+    onSignOut: (() -> Unit)? = null,
+    onSignIn: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
     
@@ -54,7 +56,67 @@ fun SettingsScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Other Settings Sections could be added here
+        // Account Section
+        Text(
+            text = "Account",
+            style = MaterialTheme.typography.h5,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 2.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                when {
+                    onSignOut != null -> {
+                        // User is signed in
+                        Button(
+                            onClick = onSignOut,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.error
+                            )
+                        ) {
+                            Text(
+                                text = "Sign Out",
+                                color = MaterialTheme.colors.onError
+                            )
+                        }
+                    }
+                    onSignIn != null -> {
+                        // User is not signed in
+                        Button(
+                            onClick = onSignIn,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.primary
+                            )
+                        ) {
+                            Text(
+                                text = "Sign In",
+                                color = MaterialTheme.colors.onPrimary
+                            )
+                        }
+                    }
+                    else -> {
+                        // No auth actions available
+                        Text(
+                            text = "Authentication not available",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // About Section
         Text(
             text = "About",
             style = MaterialTheme.typography.h5,
