@@ -131,3 +131,7 @@ fun MyScreen() {
 ## Git Commit Rules
 
 **CRITICAL RESTRICTION**: NEVER commit files that are in the "never commit" changelist in git. Always check git status before committing and exclude any files marked in this changelist. Violating this rule has severe consequences.
+
+**Specifically NEVER commit**:
+- `iosApp/iosApp/Info.plist` (contains Supabase credentials)
+- `.claude/settings.local.json` (local IDE settings)
