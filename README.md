@@ -1,73 +1,52 @@
 # GlobalTrip
 
-A cross-platform travel companion application built with Kotlin Multiplatform (KMP) and Compose Multiplatform, designed to work seamlessly on Android, iOS, and Web.
+A Kotlin Multiplatform (KMP) travel planning application that works across Android, iOS, and Web platforms.
 
-## Project Overview
+## Trip List Feature Implementation
 
-GlobalTrip helps travelers plan, organize, and share their journey experiences across multiple platforms with a single codebase. The app supports trip planning, real-time navigation, expense tracking, and collaboration with fellow travelers.
+The Trip List feature allows users to view their trips categorized as upcoming, past, or archived. The implementation follows an MVI (Model-View-Intent) architecture pattern and consists of:
 
-## Architecture
+### Domain Layer
 
-The project follows Clean Architecture principles combined with a modular approach:
+- **Trip Model**: Represents a trip with properties like title, dates, destination, etc.
+- **TripRepository**: Interface for CRUD operations on trips
+- **GetTripsUseCase**: Use case that retrieves all trips for the current user
 
-- **Core Modules**: Reusable components shared across features
-  - `common`: Utility classes and extensions
-  - `data`: Data repositories and sources
-  - `database`: Local persistence with SQLDelight
-  - `designsystem`: UI components and theming
-  - `domain`: Business logic and use cases
-  - `network`: API communication with Ktor
-  - `preferences`: User preferences storage
-  - `security`: Authentication and encryption
-  - `testing`: Test utilities
-  - `ui`: Common UI components
+### Data Layer
 
-- **Feature Modules**: Independent functional areas
-  - `auth`: User authentication and profile management
-  - `trips`: Trip creation, management, and details
-  - `maps`: Maps integration and navigation
-  - `expenses`: Expense tracking and splitting
-  - `collaboration`: Sharing and collaboration features
-  - `settings`: User preferences and app configuration
+- **MockTripRepository**: A mock implementation of the TripRepository for development purposes
 
-## Supported Platforms
+### UI Layer
 
-- Android (Phone & Tablet)
-- iOS (iPhone & iPad)
-- Web (via Kotlin/Wasm)
+- **TripListViewModel**: Manages the state of the trip list screen, handling filtering, archiving, and other operations
+- **TripListState**: Data class representing the UI state for the trip list
+- **TripListScreen**: Composable function that displays the trip list with filters and stats
+- **TripCard**: Card component for displaying a trip summary
+- **GTFilterChip**: Reusable filter chip component
+
+### Tests
+
+- **TripListViewModelTest**: Tests for the TripListViewModel
+- **TripCardTest**: Tests for the TripCard composable
 
 ## Getting Started
 
-### Prerequisites
+1. Clone the repository
+2. Open the project in Android Studio
+3. Run on your preferred platform (Android, iOS, or Web)
 
-- Android Studio Arctic Fox or newer
-- Xcode 13 or newer (for iOS development)
-- JDK 17 or newer
-- Gradle 8.0+
-- CocoaPods (for iOS dependencies)
+## Architecture
 
-### Building the Project
+The app follows a clean architecture approach with:
 
-#### Android
+- **Feature-based modularization**: Each feature (trips, auth, maps, etc.) is a separate module
+- **Core modules**: Shared infrastructure code (database, network, common utilities)
+- **MVI pattern**: Each screen follows the Model-View-Intent pattern
+- **Compose Multiplatform**: UI is built with Compose for all platforms
 
-```bash
-./gradlew :androidApp:build
-```
+## Technologies Used
 
-#### iOS
-
-```bash
-cd iosApp
-pod install
-# Open the generated .xcworkspace file in Xcode and build
-```
-
-#### Web
-
-```bash
-./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-```
-
-## Development Guidelines
-
-Refer to the [Coding Conventions](./docs/coding_convention.md) document for detailed guidelines on code style, architecture patterns, and best practices used throughout the project.
+- Kotlin Multiplatform
+- Compose Multiplatform for UI
+- Kotlinx Datetime for date handling
+- KMP Testing for cross-platform tests

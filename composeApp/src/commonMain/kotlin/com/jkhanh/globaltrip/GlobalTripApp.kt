@@ -13,7 +13,7 @@ import org.koin.compose.koinInject
  */
 @Composable
 fun GlobalTripApp() {
-    // Settings functionality restored with Koin injection
+    // Get the theme settings from the SettingsViewModel using Koin
     val settingsViewModel: SettingsViewModel = koinInject()
     val currentTheme by settingsViewModel.themeOption.collectAsState()
     

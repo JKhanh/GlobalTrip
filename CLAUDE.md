@@ -104,3 +104,34 @@ fun MyScreen() {
 - DI verification tests using Koin's `verify()` API
 - Follow AAA pattern with descriptive naming
 - Target 70% coverage per module
+
+## Code Deletion Guidelines
+
+**CRITICAL**: Before deleting any Kotlin files, always check for references in platform-specific code:
+
+1. **Check Swift/iOS references**: Search `iosApp/` directory for any Swift files that might import or call the Kotlin code
+   - Look for `import ComposeApp` statements
+   - Search for Kotlin class/function names being called from Swift
+   - Check `MainViewController`, `ContentView.swift`, and other entry points
+
+2. **Check Android references**: Search `androidMain/` for any Android-specific code that references the Kotlin files
+   - Look for custom Android implementations
+   - Check manifest files and Android-specific configurations
+
+3. **Check WASM references**: Search `wasmJsMain/` for any WASM-specific implementations
+   - Platform-specific repository implementations
+   - WASM entry points and configurations
+
+4. **Cross-platform search**: Use global search to find all references before deletion
+   - Search the entire codebase for class names, function names, and file imports
+   - Pay special attention to `expect/actual` declarations
+
+**Remember**: Kotlin Multiplatform generates native frameworks for each platform. Deleting a Kotlin file that's referenced by platform code will break the build, even if it appears unused in Kotlin.
+
+## Git Commit Rules
+
+**CRITICAL RESTRICTION**: NEVER commit files that are in the "never commit" changelist in git. Always check git status before committing and exclude any files marked in this changelist. Violating this rule has severe consequences.
+
+**Specifically NEVER commit**:
+- `iosApp/iosApp/Info.plist` (contains Supabase credentials)
+- `.claude/settings.local.json` (local IDE settings)

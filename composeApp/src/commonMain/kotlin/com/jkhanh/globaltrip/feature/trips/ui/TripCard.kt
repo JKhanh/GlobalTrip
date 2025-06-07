@@ -2,7 +2,6 @@ package com.jkhanh.globaltrip.feature.trips.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,25 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.jkhanh.globaltrip.core.domain.model.Trip
-import com.jkhanh.globaltrip.core.ui.components.GTCard
 import kotlinx.datetime.LocalDate
 
 /**
- * Card component to display a trip summary
+ * Card component to display a trip summary based on Figma design
  */
 @Composable
 fun TripCard(
@@ -39,26 +34,35 @@ fun TripCard(
     onClick: (Trip) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GTCard(
-        modifier = modifier.clickable { onClick(trip) },
-        elevation = 2.dp
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.surface)
+            .clickable { onClick(trip) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            // Trip cover image placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary.copy(alpha = 0.2f))
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Trip title
+        // Trip image placeholder
+        Box(
+            modifier = Modifier
+                .size(70.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colors.primary.copy(alpha = 0.15f)) // Use theme color with reduced opacity
+        )
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            // Trip destination as title
             Text(
-                text = trip.title,
-                style = MaterialTheme.typography.h6,
+                text = trip.destination,
+                style = MaterialTheme.typography.body1.copy(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                ),
+                color = MaterialTheme.colors.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -66,46 +70,26 @@ fun TripCard(
             Spacer(modifier = Modifier.height(4.dp))
             
             // Trip dates
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Date",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colors.primary
-                )
-                
-                Spacer(modifier = Modifier.width(4.dp))
-                
-                Text(
-                    text = formatDateRange(trip.startDate, trip.endDate),
-                    style = MaterialTheme.typography.body2
-                )
-            }
+            Text(
+                text = formatDateRange(trip.startDate, trip.endDate),
+                style = MaterialTheme.typography.body2.copy(
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp
+                ),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+            )
             
             Spacer(modifier = Modifier.height(4.dp))
             
-            // Trip location
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Location",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colors.primary
-                )
-                
-                Spacer(modifier = Modifier.width(4.dp))
-                
-                Text(
-                    text = trip.destination,
-                    style = MaterialTheme.typography.body2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            // Host info - Using owner ID for now
+            Text(
+                text = "Hosted by ${trip.ownerId.substringBefore("@")}",
+                style = MaterialTheme.typography.body2.copy(
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp
+                ),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+            )
         }
     }
 }
@@ -114,18 +98,25 @@ fun TripCard(
  * Format a date range as a string
  */
 private fun formatDateRange(startDate: LocalDate?, endDate: LocalDate?): String {
-    if (startDate == null || endDate == null) {
-        return "Unknown dates"
+    if (startDate == null && endDate == null) {
+        return "Dates not set"
     }
-    return "${formatDate(startDate)} - ${formatDate(endDate)}"
+    
+    return when {
+        startDate != null && endDate != null -> "${formatDate(startDate)} - ${formatDate(endDate)}"
+        startDate != null -> "From ${formatDate(startDate)}"
+        endDate != null -> "Until ${formatDate(endDate)}"
+        else -> "Dates not set"
+    }
 }
 
 /**
- * Format a date as a string
+ * Format a date as a string per Figma design (e.g., "Mar 9, 2023")
  */
 private fun formatDate(date: LocalDate): String {
-    return "${
-        date.month.name.lowercase()
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            .take(3)} ${date.dayOfMonth}, ${date.year}"
+    val month = date.month.name.lowercase()
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        .take(3)
+    
+    return "$month ${date.dayOfMonth}, ${date.year}"
 }

@@ -1,0 +1,4 @@
+-- Migration from version 1 to version 2
+-- Add collaborator_ids column to TripModel table
+
+ALTER TABLE TripModel ADD COLUMN collaborator_ids TEXT NOT NULL DEFAULT '';

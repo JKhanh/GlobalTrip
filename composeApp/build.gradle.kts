@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -29,39 +30,49 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            binaryOptions["bundleId"] = "com.jkhanh.globaltrip.ComposeApp"
         }
     }
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "composeApp"
-        browser {
-            val rootDirPath = project.rootDir.path
-            val projectDirPath = project.projectDir.path
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+    // Temporarily disabled WasmJS target due to SQLDelight compatibility issues
+    // @OptIn(ExperimentalWasmDsl::class)
+    // wasmJs {
+    //     moduleName = "composeApp"
+    //     browser {
+    //         val rootDirPath = project.rootDir.path
+    //         val projectDirPath = project.projectDir.path
+    //         commonWebpackConfig {
+    //             outputFileName = "composeApp.js"
+    //             devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+    //                 static = (static ?: mutableListOf()).apply {
+    //                     // Serve sources to debug inside browser
+    //                     add(rootDirPath)
+    //                     add(projectDirPath)
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     binaries.executable()
+    // }
     
     sourceSets {
+        // Temporarily disabled WasmJS target due to SQLDelight compatibility issues
+        // wasmJsMain.dependencies {
+        //     // For WasmJS, we'll need to implement a mock version of the repository
+        //     // that uses a different storage mechanism or API calls instead of SQLDelight
+        // }
         
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.koin.test)
         }
+        
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -70,41 +81,41 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
             
-            // Compose Navigation from JetBrains - correct implementation
-            implementation(libs.androidx.navigation.compose)
-            
-            // Supabase
-            implementation(libs.supabase.auth)
-            implementation(libs.supabase.auth.compose)
-            implementation(libs.ktor.client.core)
+            // SQLDelight
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
             
             // Koin DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             
+            // Compose Navigation from JetBrains - correct implementation
+            implementation(libs.androidx.navigation.compose)
+            
+            // Date Time Picker
+            implementation(libs.kmp.date.time.picker)
+            
+            // Supabase
+            implementation(libs.supabase.auth)
+            implementation(libs.supabase.auth.compose)
+            implementation(libs.ktor.client.core)
+            
             // Logging
             implementation(libs.napier)
-        }
-        
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.koin.test)
         }
         
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
         }
         
         iosMain.dependencies {
+            implementation(libs.sqldelight.native)
             implementation(libs.ktor.client.darwin)
-        }
-        
-        wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
         }
     }
 }
@@ -147,6 +158,15 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+// Configure SQLDelight
+sqldelight {
+    databases {
+        create("GlobalTripDatabase") {
+            packageName.set("com.jkhanh.globaltrip.core.database")
+        }
     }
 }
 

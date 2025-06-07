@@ -3,21 +3,16 @@ package com.jkhanh.globaltrip.feature.trips.presentation
 import com.jkhanh.globaltrip.core.domain.model.Trip
 
 /**
- * State for the trip list screen
+ * State for the trip list screen based on Figma design
  */
 data class TripListState(
-    val trips: List<Trip> = emptyList(),
+    val allTrips: List<Trip> = emptyList(),
+    val upcomingTrips: List<Trip> = emptyList(),
+    val pastTrips: List<Trip> = emptyList(),
+    val archivedTrips: List<Trip> = emptyList(),
+    val filteredTrips: List<Trip> = emptyList(),
+    val searchQuery: String = "",
+    val isSearchActive: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null,
-    val filterType: TripFilterType = TripFilterType.ALL
+    val error: String? = null
 )
-
-/**
- * Filter types for trip list
- */
-enum class TripFilterType {
-    ALL,
-    UPCOMING,
-    PAST,
-    ARCHIVED
-}
