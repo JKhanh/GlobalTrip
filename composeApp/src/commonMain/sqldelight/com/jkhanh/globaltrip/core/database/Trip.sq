@@ -10,7 +10,8 @@ CREATE TABLE TripModel (
     is_archived INTEGER AS kotlin.Boolean NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    owner_id TEXT NOT NULL
+    owner_id TEXT NOT NULL,
+    collaborator_ids TEXT NOT NULL DEFAULT ''
 );
 
 -- Select all trips
@@ -49,8 +50,9 @@ INSERT OR REPLACE INTO TripModel(
     is_archived, 
     created_at, 
     updated_at, 
-    owner_id
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    owner_id,
+    collaborator_ids
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Delete a trip
 deleteTrip:

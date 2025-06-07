@@ -305,6 +305,16 @@ fun TripCreateScreen(
                     )
                 }
                 
+                // Validation error display
+                state.validationError?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colors.error,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                
                 // Destination Section
                 Text(
                     text = "Destination",
@@ -317,7 +327,7 @@ fun TripCreateScreen(
                 
                 // Location field
                 Text(
-                    text = "Location",
+                    text = "Location (optional)",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colors.onBackground,
@@ -327,6 +337,7 @@ fun TripCreateScreen(
                 GTTextField(
                     value = state.destination,
                     onValueChange = { viewModel.updateDestination(it) },
+                    placeholder = "Where are you going?",
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -383,6 +394,16 @@ fun TripCreateScreen(
                             uncheckedThumbColor = MaterialTheme.colors.onSurface,
                             uncheckedTrackColor = MaterialTheme.colors.surface
                         )
+                    )
+                }
+                
+                // General error display
+                state.error?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colors.error,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
                 

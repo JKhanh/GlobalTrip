@@ -16,12 +16,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,20 +54,46 @@ fun TripListScreen(
     Scaffold(
         backgroundColor = MaterialTheme.colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Trips",
-                        style = MaterialTheme.typography.h5.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 28.sp
-                        ),
-                        color = MaterialTheme.colors.onBackground
-                    )
-                },
-                backgroundColor = MaterialTheme.colors.background,
-                elevation = 0.dp
-            )
+            if (state.isSearchActive) {
+                TopAppBar(
+                    title = {
+                        OutlinedTextField(
+                            value = state.searchQuery,
+                            onValueChange = viewModel::updateSearchQuery,
+                            placeholder = { Text("Search trips by name or destination...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = viewModel::clearSearch) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear Search")
+                        }
+                    },
+                    backgroundColor = MaterialTheme.colors.background,
+                    elevation = 0.dp
+                )
+            } else {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Trips",
+                            style = MaterialTheme.typography.h5.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp
+                            ),
+                            color = MaterialTheme.colors.onBackground
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = viewModel::toggleSearch) {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
+                    },
+                    backgroundColor = MaterialTheme.colors.background,
+                    elevation = 0.dp
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -100,7 +130,7 @@ fun TripListScreen(
                         .padding(16.dp)
                         .align(Alignment.Center)
                 )
-            } else if (state.allTrips.isEmpty()) {
+            } else if (!state.isSearchActive && state.allTrips.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -135,6 +165,63 @@ fun TripListScreen(
                     )
                     
                     Spacer(modifier = Modifier.weight(1f))
+                }
+            } else if (state.isSearchActive) {
+                // Search results
+                val tripsToShow = if (state.searchQuery.isBlank()) state.allTrips else state.filteredTrips
+                
+                if (tripsToShow.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = if (state.searchQuery.isBlank()) "No trips available" else "No trips found",
+                                style = MaterialTheme.typography.h6.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colors.onBackground
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (state.searchQuery.isBlank()) "Create your first trip to get started" else "Try a different search term",
+                                style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.onBackground.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        item {
+                            Text(
+                                text = if (state.searchQuery.isBlank()) "All Trips (${tripsToShow.size})" else "Search Results (${tripsToShow.size})",
+                                style = MaterialTheme.typography.h6.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                ),
+                                color = MaterialTheme.colors.onBackground,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colors.background)
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            )
+                        }
+                        
+                        items(tripsToShow) { trip ->
+                            TripCard(
+                                trip = trip,
+                                onClick = onTripClick
+                            )
+                        }
+                        
+                        // Add bottom space for FAB
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
+                    }
                 }
             } else {
                 LazyColumn(

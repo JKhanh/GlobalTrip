@@ -241,20 +241,6 @@ private fun TripDetailContent(
                 modifier = Modifier.padding(16.dp)
             ) {
                 DetailRow(
-                    label = "Created",
-                    value = formatInstant(trip.createdAt)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                DetailRow(
-                    label = "Last Updated", 
-                    value = formatInstant(trip.updatedAt)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                DetailRow(
                     label = "Owner",
                     value = trip.ownerId.substringBefore("@")
                 )
@@ -341,10 +327,3 @@ private fun formatDate(date: LocalDate): String {
     return "$month ${date.dayOfMonth}, ${date.year}"
 }
 
-/**
- * Format an Instant as a readable date string
- */
-private fun formatInstant(instant: kotlinx.datetime.Instant): String {
-    // Simple formatting - could be enhanced with proper date formatting library
-    return instant.toString().substringBefore("T")
-}

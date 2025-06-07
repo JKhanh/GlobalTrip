@@ -1,10 +1,6 @@
 package com.jkhanh.globaltrip.core.app
 
-import com.jkhanh.globaltrip.di.databaseModule
-import com.jkhanh.globaltrip.di.platformModules
-import com.jkhanh.globaltrip.di.settingsModule
-import com.jkhanh.globaltrip.di.tripModule
-import org.koin.core.context.startKoin
+import com.jkhanh.globaltrip.di.initKoin
 
 /**
  * iOS application initialization class for GlobalTrip
@@ -14,10 +10,7 @@ object GlobalTripIosApp {
      * Initialize the application's dependencies
      */
     fun initialize() {
-        // Initialize Koin
-        startKoin {
-            modules(databaseModule + tripModule + settingsModule + platformModules)
-        }
+        initKoin()
     }
 }
 

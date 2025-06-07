@@ -84,12 +84,13 @@ class SqlDelightTripRepository(
             is_archived = trip.isArchived,
             created_at = now.toString(),
             updated_at = now.toString(),
-            owner_id = trip.ownerId
+            owner_id = trip.ownerId,
+            collaborator_ids = trip.collaboratorIds.joinToString(",")
         )
         tripId
     }
     
-    override suspend fun updateTrip(trip: Trip) = withContext(Dispatchers.Default) {
+    override suspend fun updateTrip(trip: Trip): Unit = withContext(Dispatchers.Default) {
         val now = Clock.System.now()
         queries.insertOrReplace(
             id = trip.id,
@@ -102,19 +103,20 @@ class SqlDelightTripRepository(
             is_archived = trip.isArchived,
             created_at = trip.createdAt.toString(),
             updated_at = now.toString(),
-            owner_id = trip.ownerId
+            owner_id = trip.ownerId,
+            collaborator_ids = trip.collaboratorIds.joinToString(",")
         )
     }
     
-    override suspend fun deleteTrip(id: String) = withContext(Dispatchers.Default) {
+    override suspend fun deleteTrip(id: String): Unit = withContext(Dispatchers.Default) {
         queries.deleteTrip(id)
     }
     
-    override suspend fun archiveTrip(id: String) = withContext(Dispatchers.Default) {
+    override suspend fun archiveTrip(id: String): Unit = withContext(Dispatchers.Default) {
         queries.archiveTrip(Clock.System.now().toString(), id)
     }
     
-    override suspend fun unarchiveTrip(id: String) = withContext(Dispatchers.Default) {
+    override suspend fun unarchiveTrip(id: String): Unit = withContext(Dispatchers.Default) {
         queries.unarchiveTrip(Clock.System.now().toString(), id)
     }
     
@@ -133,7 +135,8 @@ class SqlDelightTripRepository(
             isArchived = is_archived,
             createdAt = Instant.parse(created_at),
             updatedAt = Instant.parse(updated_at),
-            ownerId = owner_id
+            ownerId = owner_id,
+            collaboratorIds = if (collaborator_ids.isBlank()) emptyList() else collaborator_ids.split(",")
         )
     }
 }

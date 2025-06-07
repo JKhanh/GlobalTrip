@@ -1,9 +1,6 @@
 package com.jkhanh.globaltrip.core.app
 
-import com.jkhanh.globaltrip.di.databaseModule
-import com.jkhanh.globaltrip.di.platformModules
-import com.jkhanh.globaltrip.di.tripModule
-import org.koin.core.context.startKoin
+import com.jkhanh.globaltrip.di.initKoin
 
 /**
  * Initialize the GlobalTrip application
@@ -18,17 +15,8 @@ object GlobalTripApp {
     fun initialize() {
         if (isInitialized) return
         
-        initializeDependencyInjection()
+        initKoin()
         
         isInitialized = true
-    }
-    
-    /**
-     * Initialize Koin dependency injection
-     */
-    private fun initializeDependencyInjection() {
-        startKoin {
-            modules(databaseModule + tripModule + platformModules)
-        }
     }
 }

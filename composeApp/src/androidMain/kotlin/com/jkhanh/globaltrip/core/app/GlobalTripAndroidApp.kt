@@ -3,11 +3,7 @@ package com.jkhanh.globaltrip.core.app
 import android.app.Application
 import android.content.Context
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.startKoin
-import com.jkhanh.globaltrip.di.databaseModule
-import com.jkhanh.globaltrip.di.platformModules
-import com.jkhanh.globaltrip.di.settingsModule
-import com.jkhanh.globaltrip.di.tripModule
+import com.jkhanh.globaltrip.di.initKoin
 
 /**
  * Android Application class for GlobalTrip
@@ -21,9 +17,8 @@ class GlobalTripAndroidApp : Application() {
         appContext = applicationContext
         
         // Initialize Koin
-        startKoin {
+        initKoin {
             androidContext(this@GlobalTripAndroidApp)
-            modules(databaseModule + tripModule + settingsModule + platformModules)
         }
     }
     

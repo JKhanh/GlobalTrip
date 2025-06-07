@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jkhanh.globaltrip.core.domain.model.Trip
 import com.jkhanh.globaltrip.feature.trips.domain.usecase.CreateTripUseCase
+import com.jkhanh.globaltrip.feature.trips.domain.usecase.ValidateTripUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,8 @@ import kotlinx.datetime.LocalDate
  * ViewModel for trip creation
  */
 class TripCreateViewModel(
-    private val createTripUseCase: CreateTripUseCase
+    private val createTripUseCase: CreateTripUseCase,
+    private val validateTripUseCase: ValidateTripUseCase
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(TripCreateState())
@@ -26,8 +28,7 @@ class TripCreateViewModel(
      * Updates the title field
      */
     fun updateTitle(title: String) {
-        _state.update { it.copy(title = title) }
-        validateInput()
+        _state.update { it.copy(title = title, validationError = null) }
     }
     
     /**
@@ -41,33 +42,43 @@ class TripCreateViewModel(
      * Updates the destination field
      */
     fun updateDestination(destination: String) {
-        _state.update { it.copy(destination = destination) }
-        validateInput()
+        _state.update { it.copy(destination = destination, validationError = null) }
     }
     
     /**
      * Updates the start date
      */
     fun updateStartDate(startDate: LocalDate) {
-        _state.update { it.copy(startDate = startDate) }
-        validateInput()
+        _state.update { it.copy(startDate = startDate, validationError = null) }
     }
     
     /**
      * Updates the end date
      */
     fun updateEndDate(endDate: LocalDate) {
-        _state.update { it.copy(endDate = endDate) }
-        validateInput()
+        _state.update { it.copy(endDate = endDate, validationError = null) }
     }
     
     /**
      * Creates a new trip
      */
     fun createTrip() {
+        // Validate using domain use case
+        val currentState = _state.value
+        val validationResult = validateTripUseCase.validateTripCreation(
+            title = currentState.title,
+            startDate = currentState.startDate,
+            endDate = currentState.endDate
+        )
+        
+        if (!validationResult.isValid) {
+            _state.update { it.copy(validationError = validationResult.error) }
+            return
+        }
+        
         viewModelScope.launch {
             try {
-                _state.update { it.copy(isLoading = true, error = null) }
+                _state.update { it.copy(isLoading = true, error = null, validationError = null) }
                 
                 val trip = Trip(
                     id = "",  // Empty ID will be replaced with a unique one in the repository
@@ -111,19 +122,6 @@ class TripCreateViewModel(
         }
     }
     
-    /**
-     * Validates the input fields
-     */
-    private fun validateInput() {
-        val isValid = _state.value.title.isNotBlank() &&
-                _state.value.destination.isNotBlank() &&
-                _state.value.startDate != null &&
-                _state.value.endDate != null &&
-                (_state.value.endDate != null && _state.value.startDate != null && 
-                _state.value.endDate!! >= _state.value.startDate!!)
-        
-        _state.update { it.copy(isValid = isValid) }
-    }
     
     /**
      * Updates the archive status
@@ -151,8 +149,8 @@ data class TripCreateState(
     val endDate: LocalDate? = null,
     val isArchived: Boolean = false,
     val isLoading: Boolean = false,
-    val isValid: Boolean = false,
     val isSuccess: Boolean = false,
     val tripId: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val validationError: String? = null
 )

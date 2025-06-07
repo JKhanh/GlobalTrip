@@ -9,7 +9,11 @@
       "Bash(ls:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:github.com)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:developer.android.com)",
+      "WebFetch(domain:kotlinlang.org)",
+      "WebFetch(domain:sqldelight.github.io)",
+      "Bash(xcodebuild:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

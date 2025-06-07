@@ -20,5 +20,5 @@ val globalTripAppModule = module {
  */
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) = startKoin {
     appDeclaration()
-    modules(globalTripAppModule + databaseModule + tripModule + platformModules)
+    modules(globalTripAppModule + platformModules)
 }
