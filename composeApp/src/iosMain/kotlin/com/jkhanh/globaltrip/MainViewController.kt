@@ -6,9 +6,16 @@ import com.jkhanh.globaltrip.di.initKoin
 
 private const val TAG = "MainViewController"
 
-fun MainViewController() = ComposeUIViewController { 
+// Initialize once when the module is loaded
+private val isInitialized by lazy {
     Logger.initialize()
     initKoin()
-    Logger.i("iOS Application started", TAG)
+    Logger.i("iOS Application initialized", TAG)
+    true
+}
+
+fun MainViewController() = ComposeUIViewController { 
+    // Ensure initialization happens only once
+    isInitialized
     App() 
 }
